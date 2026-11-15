@@ -1,0 +1,13 @@
+import {useRef,useState} from 'react';
+import {Mail,Trash2} from 'lucide-react';
+import {apiData,describeError} from './api';
+import type {ReplyReceipt} from './replyReceipts';
+export default function SentReplies({receipts,onDeleted,onBrowse}:{receipts:ReplyReceipt[];onDeleted:(replyId:number)=>void;onBrowse:()=>void}){
+ const [deleting,setDeleting]=useState<number|null>(null);const [target,setTarget]=useState<number|null>(null);const [error,setError]=useState('');const [message,setMessage]=useState('');const lock=useRef(false);
+ const remove=async()=>{if(target===null||lock.current)return;const id=target;lock.current=true;setDeleting(id);setError('');try{const d=await apiData<{replyId:number;totalReplies:number}>(`/api/replies/${id}`,{method:'DELETE'});if(d.replyId!==id)throw new Error('삭제 응답을 확인할 수 없어요.');onDeleted(id);setTarget(null);setMessage('답장을 삭제했어요. 이미 발급된 감사장은 유지돼요.')}catch(e){setError(describeError(e))}finally{lock.current=false;setDeleting(null)}};
+ const visible=receipts.filter(r=>!r.deleted);
+ return <section className="content-page"><span className="overline">내가 건넨 온기</span><h1>내가 보낸 답장</h1><div className="notice"><p>이 기기에서 전송이 확인된 답장이에요.<small>전체 서버 목록은 연동 대기 중이에요. 다른 기기에서 보낸 답장과 이후 변경된 상태는 표시되지 않을 수 있어요.</small></p></div>{message&&<p className="success" role="status">{message}</p>}{error&&<p className="error" role="alert">{error}</p>}
+ {visible.length===0?<div className="empty"><Mail size={44}/><h2>이 기기에 보관된 전송 기록이 없어요</h2><p>전체 서버 답장 목록과는 다를 수 있어요.</p><button className="primary" onClick={onBrowse}>고민 둘러보기</button></div>:visible.map(r=><article className="saved-reply" key={r.replyId}><span className="tag">{r.type==='LETTER'?'손편지':r.type==='VOICE'?'말로 쓴 답장':'글 답장'} · 전송 확인</span><h2>{r.title}</h2>{r.type==='LETTER'&&r.imageUrl?<img className="letter-photo" src={r.imageUrl} alt="전송한 손편지"/>:<p>{r.content}</p>}<p className="helper">전송 확인: {new Date(r.sentAt).toLocaleString('ko-KR')}</p><button className="secondary delete-reply" disabled={deleting!==null} onClick={()=>{setError('');setTarget(r.replyId)}}><Trash2 size={17}/>답장 삭제</button></article>)}
+ {target!==null&&<div className="modal-overlay"><section className="modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-title"><h2 id="delete-title">답장을 삭제할까요?</h2><p>삭제하면 되돌릴 수 없어요. 받은 고마움·후일담도 보이지 않게 되고, 털 기록 누적 수에서 제외돼요. 삭제해도 같은 고민에 다시 답장할 수 없어요.</p>{error&&<p className="error" role="alert">{error}</p>}<div className="button-row"><button autoFocus className="secondary" disabled={deleting!==null} onClick={()=>setTarget(null)}>취소</button><button className="primary" disabled={deleting!==null} onClick={()=>void remove()}>{deleting!==null?'삭제 중…':'삭제하기'}</button></div></section></div>}
+ </section>
+}

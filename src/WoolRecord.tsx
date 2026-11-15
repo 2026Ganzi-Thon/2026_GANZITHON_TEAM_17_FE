@@ -1,0 +1,10 @@
+import {useEffect,useState} from 'react';
+import {ArrowLeft,Mail} from 'lucide-react';
+import {apiData,describeError} from './api';
+type RecordData={totalReplies:number;stage:'BALL'|'SCARF'|'SWEATER';sweaterCount:number;nextStage:'BALL'|'SCARF'|'SWEATER'|null;remainingToNext:number;progress:number};
+const stageNames={BALL:'털실 뭉치',SCARF:'목도리',SWEATER:'스웨터'};
+export default function WoolRecord({onBack,onReplies,onCertificates}:{onBack:()=>void;onReplies:()=>void;onCertificates:()=>void}){
+ const [record,setRecord]=useState<RecordData|null>(null);const [error,setError]=useState('');const [attempt,setAttempt]=useState(0);
+ useEffect(()=>{let active=true;setRecord(null);setError('');apiData<RecordData>('/api/senior/wool').then(d=>{if(active)setRecord(d)}).catch(e=>{if(active)setError(describeError(e))});return()=>{active=false}},[attempt]);
+ return <section className="content-page wool-page"><button className="icon-button" onClick={onBack} aria-label="홈으로 돌아가기"><ArrowLeft/></button><span className="overline">마음이 모여 온기가 돼요</span><h1>내 털 기록</h1>{error?<div role="alert" className="notice"><p>{error}</p><button className="secondary" onClick={()=>setAttempt(n=>n+1)}>다시 불러오기</button></div>:!record?<p className="helper" role="status">털 기록을 불러오고 있어요…</p>:<><div className="wool-illustration" aria-hidden="true">{record.totalReplies===0?'✧':record.stage==='BALL'?'🧶':record.stage==='SCARF'?'🧣':'👕'}</div><h2>{record.totalReplies===0?'첫 온기를 기다리고 있어요':stageNames[record.stage]}{record.stage==='SWEATER'&&record.sweaterCount>1?` ×${record.sweaterCount}`:''}</h2><p>선배님이 건넨 답장 <strong>{record.totalReplies}통</strong></p><div className="wool-progress"><progress aria-label="다음 털 단계 진행률" max={1} value={Math.max(0,Math.min(1,record.progress))}/><p>{record.totalReplies===0?'첫 답장으로 털 한 올을 건네보세요.':`다음 온기까지 ${record.remainingToNext}통 남았어요.`}</p></div><div className="notice">답장 한 통 한 통이 누군가에게 따뜻한 힘이 돼요.</div></>}<button className="secondary" onClick={onReplies}><Mail size={18}/> 내가 보낸 답장</button><button className="primary" onClick={onCertificates}>내 감사장 보기</button><p className="helper">신고로 숨겨지거나 삭제된 답장은 누적 수에서 제외돼요. 이미 발급된 감사장은 유지돼요.</p></section>
+}

@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const source=fs.readFileSync(new URL('../src/policies.ts',import.meta.url),'utf8');
+const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {replyBlocked,sanctionNotice}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+test('경고는 안내하되 답장을 막지 않는다',()=>{assert.equal(replyBlocked({level:'WARNED'}),false);assert.match(sanctionNotice({level:'WARNED'}),/경고/)});
+test('기간 만료 판단은 서버에 맡기고 제한 해제 전에는 차단한다',()=>{assert.equal(replyBlocked({level:'RESTRICTED',restrictedUntil:'2020-01-01T00:00:00Z'}),true);assert.match(sanctionNotice({level:'RESTRICTED',restrictedUntil:'invalid'}),/제한/)});
+test('영구 제한은 차단하고 제한 없음은 안내하지 않는다',()=>{assert.equal(replyBlocked({level:'BANNED'}),true);assert.match(sanctionNotice({level:'BANNED'}),/영구/);assert.equal(sanctionNotice({level:'NONE'}),null);assert.equal(sanctionNotice(null),null)});
