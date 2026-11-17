@@ -1,0 +1,2 @@
+export function voiceError(code:string){return ({'not-allowed':'마이크 권한을 허용한 뒤 다시 시도해주세요.','service-not-allowed':'이 브라우저에서 음성 인식을 사용할 수 없어요. 글로 답장해주세요.','audio-capture':'마이크를 찾을 수 없어요. 연결 상태를 확인해주세요.','network':'음성 인식 연결이 끊겼어요. 인터넷 연결을 확인한 뒤 다시 시도해주세요.','no-speech':'말소리가 들리지 않았어요. 마이크를 누르고 다시 말씀해주세요.','language-not-supported':'한국어 음성 인식을 지원하지 않는 브라우저예요. 글로 답장해주세요.'} as Record<string,string>)[code]||'음성을 인식하지 못했어요. 다시 시도하거나 글로 입력해주세요.'}
+export function mergeTranscript(prefix:string,parts:string[]){return [prefix.trim(),parts.join(' ').trim()].filter(Boolean).join(' ')}
