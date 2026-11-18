@@ -25,3 +25,4 @@
 .logo span{color:#5d32a4}.logo svg{color:#8d74ff}.logo.white svg{color:white}
 nav .active span{background:#eee4fc}nav .active{color:#9b59d9}
 @media(max-width:350px){.role-card .mascot-original{width:145px;height:165px;right:-10px}.character-stage .mascot-original{width:180px;height:200px}}
+.logo .brand-symbol{display:block;width:52px;height:auto;object-fit:contain}.logo .brand-wordmark{display:block;width:65px;height:auto;object-fit:contain}.logo{gap:10px}.logo.white .brand-wordmark{filter:brightness(0) invert(1)}.splash-center .logo .brand-symbol{width:88px;height:auto}.splash-center .logo .brand-wordmark{width:100px;height:auto}
