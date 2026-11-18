@@ -67,3 +67,5 @@ Pages 빌드는 `npm run build -- --mode github-pages`를 사용하며 저장소
 `firebase.json`과 `.firebaserc`는 Firebase Hosting 배포 설정입니다. `npm run build` 후 `npx firebase-tools deploy --only hosting`으로 배포합니다.
 
 온이·새봄이는 제공받은 원본 투명 PNG를 `public/brand/`에서 사용합니다. 역할 선택·가입·프로필·빈 목록에 공통 Mascot 컴포넌트를 적용합니다. 파비콘은 로고 시안을 참고한 SVG입니다.
+
+전체 캐릭터·로고 사용부를 공통 `brand.ts`, `Logo`, `Mascot`으로 통일했습니다. 시작 화면 중복 글자를 제거하고 답장 완료·시연 빈 목록에도 원본을 적용했습니다. 감사장 화면과 PNG/PDF는 원본 심볼과 워드마크 로딩이 끝난 뒤 동일하게 그립니다. 이미지 로딩 재시도와 Pages 하위 경로를 포함한 테스트 19개가 통과했습니다. 털실·목도리·스웨터는 단계 표시용 그림이며 원본 캐릭터와 별개입니다.
