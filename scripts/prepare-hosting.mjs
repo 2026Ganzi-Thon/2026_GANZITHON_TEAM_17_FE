@@ -1,0 +1,16 @@
+import {readFileSync,existsSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {resolve,dirname} from 'node:path';
+import {spawnSync} from 'node:child_process';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const pkg=JSON.parse(readFileSync(resolve(root,'package.json'),'utf8'));
+const config=JSON.parse(readFileSync(resolve(root,'firebase.json'),'utf8'));
+if(pkg.name!=='hanol-frontend'||config.hosting.site!=='hanol-ganzi-team17')throw new Error('한 올 프로젝트와 배포 대상 설정을 확인해주세요.');
+const source=readFileSync(resolve(root,'index.html'),'utf8');
+if(!source.includes('한 올 · 마음을 잇는 편지')||/미리봄|miribom/i.test(source))throw new Error('한 올 코드가 아니므로 배포를 중단합니다.');
+const built=spawnSync('npm',['run','build'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
+if(built.status!==0)process.exit(built.status||1);
+const html=readFileSync(resolve(root,'dist/index.html'),'utf8');
+if(!html.includes('한 올 · 마음을 잇는 편지')||/미리봄|miribom/i.test(html))throw new Error('빌드 결과가 한 올이 아니므로 배포를 중단합니다.');
+for(const asset of ['oni.png','saebomi.png','logo-symbol.png','logo-wordmark.png'])if(!existsSync(resolve(root,'dist/brand',asset)))throw new Error(`한 올 이미지가 누락됐어요: ${asset}`);
+console.log('한 올 소스·빌드 결과·이미지·Hosting 대상 검증 완료');
