@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const source=fs.readFileSync(new URL('../src/replyValidation.ts',import.meta.url),'utf8');
+const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const {letterFileError,replyTextWarning}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+test('손편지는 서버 OCR이 지원하는 JPG와 PNG만 선택한다',()=>{for(const type of ['image/jpeg','image/png'])assert.equal(letterFileError({type,size:1024}), '');for(const type of ['image/webp','image/heic','application/pdf',''])assert.ok(letterFileError({type,size:1024}));});
+test('손편지 파일은 비어 있지 않고 10MB 이하여야 한다',()=>{for(const size of [0,10*1024*1024+1])assert.ok(letterFileError({type:'image/jpeg',size}));assert.equal(letterFileError({type:'image/png',size:10*1024*1024}), '');});
+test('내용 확인은 공백과 연락처를 안내하되 일반 경험담을 막지 않는다',()=>{for(const value of [' ','010-1234-5678','여기로 와요 https://example.com','www.example.com','카카오톡 아이디 test'])assert.ok(replyTextWarning(value));assert.equal(replyTextWarning('저도 처음에는 많이 헤맸어요. 작은 목표를 하나씩 세워보세요.'),'');assert.equal(replyTextWarning('가'.repeat(1000)),'');assert.ok(replyTextWarning('가'.repeat(1001)));});
