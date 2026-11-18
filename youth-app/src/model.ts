@@ -32,7 +32,7 @@ export type Worry = Draft & {
   replies: Reply[];
 };
 const ageLabels: Record<string, string> = {
-  '20S': '20대', '30S': '30대', '40S': '40대', '50S': '50대', '60S': '60대', '70S_PLUS': '70대 이상',
+  '20S': '20대', '30S': '30대', '40S': '40대', '50S': '50대', '60S': '60대', '70S': '70대', '80S_PLUS': '80대 이상',
 };
 export const ageLabel = (code?: string) => code ? ageLabels[code] : undefined;
 export const demoAges: Record<number, string> = { 1: '20대', 2: '30대', 3: '20대', 4: '20대', 5: '20대', 6: '30대', 7: '20대', 8: '30대', 9: '20대' };

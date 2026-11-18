@@ -1,3 +1,4 @@
+import {Home,MessageSquare,UserRound,ArrowLeft} from 'lucide-react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import profileArt from './brand/saebomi.png';
 import oniArt from './brand/oni.png';
@@ -25,7 +26,7 @@ const topicPaths: Partial<Record<Draft['tag'], string>> = {
   HEALTH: 'M6 2.5h4V6h3.5v4H10v3.5H6V10H2.5V6H6z',
   OTHER: 'M8 2.5 9.6 6l3.9 2-3.9 2L8 13.5 6.4 10 2.5 8l3.9-2z',
 };
-const youthAges = ['20대', '30대', '40대', '50대', '60대', '70대 이상'];
+const youthAges = ['20대', '30대', '40대'];
 
 function HeartIcon({ filled = false }: { filled?: boolean }) {
   return <svg viewBox="0 0 20 20" fill={filled ? 'currentColor' : 'none'} aria-hidden="true">
@@ -57,7 +58,7 @@ function restore<T,>(key: string, fallback: T): T {
   catch { return fallback; }
 }
 
-export function YouthApp({ userId, initialNickname, initialAge }: { userId?: string; initialNickname?: string; initialAge?: string } = {}) {
+export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { onRestart?: () => void; userId?: string; initialNickname?: string; initialAge?: string } = {}) {
   const key = userId ? 'on-youth-server-' + userId : 'on-youth-demo';
   const [items, setItems] = useState<Worry[]>(() => {
     const saved = restore<Worry[]>(key, []);
@@ -424,7 +425,7 @@ export function YouthApp({ userId, initialNickname, initialAge }: { userId?: str
     </div></fieldset>
     <button className="primary full-width">다음으로</button>
   </form>;
-  if (page === 'nickname') body = <form className="stack" onSubmit={event => {
+  if (page === 'nickname') body = <><form className="stack" onSubmit={event => {
     event.preventDefault();
     const value = nicknameDraft.trim();
     if (value.length < 2 || value.length > 10) { setError('닉네임은 2~10자로 입력해주세요.'); return; }
@@ -438,7 +439,7 @@ export function YouthApp({ userId, initialNickname, initialAge }: { userId?: str
     <label>닉네임 <input value={nicknameDraft} maxLength={10} onChange={event => setNicknameDraft(event.target.value)} /></label>
     <small>2~10자로 입력해주세요.</small>
     <button className="primary" disabled={pending}>저장하기</button>
-  </form>;
+  </form>{onRestart && <div className="restart-section"><button type="button" disabled={pending} onClick={onRestart}>처음부터 다시 시작</button><p>시연용 · 이 기기의 사용자 ID를 초기화하고 역할을 다시 선택해요.</p></div>}</>;
   const serverAlertCard = (item: Notification) =>
     <button className="card story" key={item.notificationId} disabled={pending} onClick={() => {
       void mutate('/api/notifications/' + item.notificationId + '/read', 'PATCH', () => {
@@ -605,7 +606,7 @@ export function YouthApp({ userId, initialNickname, initialAge }: { userId?: str
         else if (page === 'alerts' || page === 'nickname' || page === 'info') go('profile');
         else if (page === 'detail' && (reply || replyList)) { selectReply(undefined); go(from); }
         else go(page === 'detail' ? from : editing && page === 'form' ? 'detail' : 'home');
-      }}>‹</button>}
+      }}><ArrowLeft/></button>}
       <strong>{titles[page] === '한 올' && <span className="youth-brand" role="img" aria-label="한 올"><img className="brand-art" src={brandArt} alt="" /><img className="wordmark-art" src={wordmarkArt} alt="" /></span>}
         {crisisNotice ? titles.form : completed && completed !== 'report' ? completed === 'heart' ? '고마움 전달 완료' : '후일담 전달 완료' : actionSheet ? actionTitle : replyList ? '답장' : titles[page] === '한 올' ? null : titles[page]}</strong>
     </header>
@@ -681,7 +682,7 @@ export function YouthApp({ userId, initialNickname, initialAge }: { userId?: str
     {(!canGoBack || page === 'alerts') && <nav aria-label="청년 메뉴">
       {(['home', 'received', 'profile'] as const).map(tab => <button key={tab}
         aria-current={activeTab === tab ? 'page' : undefined} onClick={() => go(tab)}>
-        <span aria-hidden="true"><i className={`nav-glyph glyph-${tab}`} /></span>
+        <span aria-hidden="true">{tab==='home'?<Home/>:tab==='received'?<MessageSquare/>:<UserRound/>}</span>
         {{ home: '홈', received: '답장', profile: '내 한 올' }[tab]}
       </button>)}
     </nav>}

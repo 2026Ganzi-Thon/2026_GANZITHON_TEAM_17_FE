@@ -361,3 +361,4 @@
 .youth-app .youth-brand .brand-art{width:49px;height:auto;object-fit:contain}
 .youth-app .youth-brand .wordmark-art{width:62px;height:auto;object-fit:contain}
 .youth-app .empty-mascot{display:block;width:155px;height:170px;object-fit:contain;margin:0 auto 18px}
+.restart-section{margin-top:28px;text-align:center}.restart-section>button{width:100%;padding:15px;background:white;border:1px solid #f1ccba;border-radius:18px;color:#a44d28}.restart-section>p{font-size:12px;color:#756b7f;line-height:1.7;margin-top:10px}.youth-app nav button>span>svg{display:block;width:25px;height:25px}.youth-app nav button[aria-current=page]:first-child svg{fill:currentColor}.youth-app header>button>svg{width:24px;height:24px}

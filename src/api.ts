@@ -39,8 +39,12 @@ export async function apiData<T>(path:string, options:RequestInit={}, requiresUs
   if(result.data===undefined||result.data===null)throw new Error('서버 응답 데이터가 비어 있어요.');
   return result.data;
 }
-export const ageCodes:Record<string,string>={'20대':'20S','30대':'30S','40대':'40S','50대':'50S','60대':'60S','70대 이상':'70S_PLUS'};
+export const ageCodes:Record<string,string>={'20대':'20S','30대':'30S','40대':'40S','50대':'50S','60대':'60S','70대':'70S','80대 이상':'80S_PLUS'};
 export const ageLabel=(code:string)=>Object.keys(ageCodes).find(label=>ageCodes[label]===code)||code;
 export const tagLabel=(code:string)=>({CAREER:'일·진로',LOVE:'연애',FAMILY:'가족',RELATIONSHIP:'친구·관계',LIVING:'생활',MIND:'마음',HEALTH:'건강',OTHER:'기타'} as Record<string,string>)[code]||code;
 export const getServerUserId=()=>localStorage.getItem(USER_ID_KEY);
 export const describeError=(error:unknown)=>error instanceof TypeError?'서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요.':error instanceof DOMException&&error.name==='TimeoutError'?'서버 응답이 늦어지고 있어요. 잠시 후 다시 시도해주세요.':error instanceof Error?error.message:'요청에 실패했어요. 다시 시도해주세요.';
+
+export const agesByRole={young:['20대','30대','40대'],senior:['50대','60대','70대','80대 이상']};
+/** Detach this device only; server records and per-user receipts remain intact. */
+export function clearActiveIdentity(){localStorage.removeItem(USER_ID_KEY);localStorage.removeItem('hanol-profile');}
