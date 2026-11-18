@@ -57,7 +57,7 @@ function restore<T,>(key: string, fallback: T): T {
   catch { return fallback; }
 }
 
-export function YouthApp({ userId }: { userId?: string } = {}) {
+export function YouthApp({ userId, initialNickname, initialAge }: { userId?: string; initialNickname?: string; initialAge?: string } = {}) {
   const key = userId ? 'on-youth-server-' + userId : 'on-youth-demo';
   const [items, setItems] = useState<Worry[]>(() => {
     const saved = restore<Worry[]>(key, []);
@@ -87,9 +87,9 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
   const [action, setAction] = useState<Action>();
   const [completed, setCompleted] = useState<Action>();
   const [confirmReport, setConfirmReport] = useState(false);
-  const [nickname, setNickname] = useState(() => restore(key + '-nickname', '포근한 양 312'));
+  const [nickname, setNickname] = useState(() => initialNickname || restore(key + '-nickname', '포근한 양 312'));
   const [nicknameDraft, setNicknameDraft] = useState('');
-  const [age, setAge] = useState(() => restore(key + '-age', ''));
+  const [age, setAge] = useState(() => initialAge || restore(key + '-age', ''));
   const [showMenu, setShowMenu] = useState(false);
   const [letterZoom, setLetterZoom] = useState(false);
   const [draftWarning, setDraftWarning] = useState('');
