@@ -52,3 +52,11 @@ npm run build
 - `src/Notifications.tsx`, `src/ReceivedHearts.tsx`: 알림·받은 마음
 - `src/CertificateArt.tsx`, `src/certificateExport.ts`: 공통 감사장 그림·파일 저장
 - `tests/`: API·정책·전송 기록·PDF·음성 처리 테스트
+
+## GitHub Pages 배포
+
+`main`에 푸시하면 GitHub Actions가 테스트·빌드 후 Pages에 자동 배포합니다.
+배포 주소: https://2026Ganzi-Thon.github.io/2026_GANZITHON_TEAM_17_FE/
+
+Pages 빌드는 `npm run build -- --mode github-pages`를 사용하며 저장소 하위 경로를 적용합니다.
+백엔드 주소는 워크플로의 공개 환경변수로 지정합니다. 로컬 개발과 기본 빌드는 `/` 경로를 유지합니다.
