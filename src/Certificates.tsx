@@ -1,3 +1,4 @@
+import Mascot from './Mascot';
 import {useEffect,useState} from 'react';
 import {ArrowLeft,Award,Download,FileDown} from 'lucide-react';
 import {apiData,describeError} from './api';
@@ -19,7 +20,7 @@ export default function Certificates({onBack,initialId=null}:{onBack:()=>void;in
  return <section className="content-page certificates-page"><button className="icon-button no-print" aria-label={selected===null?'내 털 기록으로':'감사장 목록으로'} onClick={()=>selected===null?onBack():setSelected(null)}><ArrowLeft/></button><span className="overline no-print">선배님의 온기를 기억해요</span><h1 className="no-print">감사장</h1><p className="subtitle no-print">누적 답장 20통마다 감사장을 받아요.</p>
  {error&&<div className="notice no-print" role="alert"><p>{error}</p><button className="secondary" onClick={()=>setAttempt(n=>n+1)}>다시 불러오기</button></div>}
  {!error&&(selected===null?entries===null:detail===null)&&<p className="helper" role="status">감사장을 불러오고 있어요…</p>}
- {selected===null&&entries?.length===0&&!error&&<div className="empty"><div className="empty-cloud"><Award size={64}/></div><h2>지금은 감사장이 없어요</h2><p>첫 감사장은 누적 답장 20통에 발급돼요.<br/>이미 발급된 감사장은 계속 보관돼요.</p></div>}
+ {selected===null&&entries?.length===0&&!error&&<div className="empty"><div className="empty-cloud"><Mascot/></div><h2>지금은 감사장이 없어요</h2><p>첫 감사장은 누적 답장 20통에 발급돼요.<br/>이미 발급된 감사장은 계속 보관돼요.</p></div>}
  {selected===null&&!error&&entries?.map(c=><button className="certificate-entry" key={c.certificateId} onClick={()=>setSelected(c.certificateId)}><Award size={32}/><div><h2>{c.replyCount?`${Math.floor(c.replyCount/20)}번째 감사장`:'온기를 나눈 감사장'}</h2>{c.replyCount&&<p>누적 답장 {c.replyCount}통</p>}<p>{date(c.issuedAt)} 발급</p></div><span>보기 →</span></button>)}
  {detail&&!error&&<><CertificateArt detail={detail}/><div className="button-row no-print"><button className="primary" disabled={saving} onClick={()=>void download('png')}><Download size={20}/>{saving?'파일 준비 중…':'사진 저장'}</button><button className="secondary" disabled={saving} onClick={()=>void download('pdf')}><FileDown size={18}/>PDF 저장</button></div>{saved&&<p className="success no-print" role="status">{saved}</p>}<button className="text-button no-print" disabled={saving} onClick={()=>{setSaved('');setSelected(null)}}>이전 감사장 발급 기록</button></>}
  </section>

@@ -60,3 +60,10 @@ npm run build
 
 Pages 빌드는 `npm run build -- --mode github-pages`를 사용하며 저장소 하위 경로를 적용합니다.
 백엔드 주소는 워크플로의 공개 환경변수로 지정합니다. 로컬 개발과 기본 빌드는 `/` 경로를 유지합니다.
+
+## Firebase 및 원본 캐릭터
+
+공개 주소: https://hanol-ganzi-team17.web.app
+`firebase.json`과 `.firebaserc`는 Firebase Hosting 배포 설정입니다. `npm run build` 후 `npx firebase-tools deploy --only hosting`으로 배포합니다.
+
+온이·새봄이는 제공받은 원본 투명 PNG를 `public/brand/`에서 사용합니다. 역할 선택·가입·프로필·빈 목록에 공통 Mascot 컴포넌트를 적용합니다. 파비콘은 로고 시안을 참고한 SVG입니다.
