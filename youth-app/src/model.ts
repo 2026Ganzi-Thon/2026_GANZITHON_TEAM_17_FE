@@ -32,9 +32,16 @@ export type Worry = Draft & {
   replies: Reply[];
 };
 const ageLabels: Record<string, string> = {
-  '20S': '20대', '30S': '30대', '40S': '40대', '50S': '50대', '60S': '60대', '70S_PLUS': '70대 이상',
+  '20S': '20대', '30S': '30대', '40S': '40대', '50S': '50대', '60S': '60대', '70S': '70대', '80S_PLUS': '80대 이상',
 };
 export const ageLabel = (code?: string) => code ? ageLabels[code] : undefined;
+export function resolveLetterUrl(path: string | null) {
+  if (!path) return undefined;
+  if (/^https?:\/\//i.test(path)) return path;
+  const base = import.meta.env.VITE_API_BASE_URL;
+  if (!base) return undefined;
+  return new URL(path, base.replace(/\/$/, '') + '/').href;
+}
 export const demoAges: Record<number, string> = { 1: '20대', 2: '30대', 3: '20대', 4: '20대', 5: '20대', 6: '30대', 7: '20대', 8: '30대', 9: '20대' };
 export const sample: Worry[] = [
   { id: 1, mine: true, author: '포근한 양 312', title: '요즘 어떤 일을 해야 할지 막막해요.',
@@ -126,7 +133,7 @@ export async function getDetail(userId: string, id: number): Promise<Worry> {
     hidden: row.hidden, liked: row.likedByMe, date: row.createdAt,
     replies: row.replies.map(reply => ({
       id: reply.replyId, author: reply.senior.nickname, content: reply.content ?? '',
-      image: reply.imageUrl ?? undefined, liked: reply.likedByMe,
+      image: resolveLetterUrl(reply.imageUrl), liked: reply.likedByMe,
       update: reply.followUp ? {
         content: reply.followUp.content, public: reply.followUp.visibility === 'PUBLIC',
       } : undefined,

@@ -354,3 +354,103 @@
 .youth-app .comment-avatar { width: 26px; height: 26px; border-radius: 50%; background: #f99671; }
 .youth-app .worry-detail:not(:has(+ .inline-replies, + .demo-comments .demo-comment-list)) { border-radius: 24px; }
 .youth-app .youth-info .profile-art { mask-image: radial-gradient(ellipse 70% 66%, #000 48%, transparent 99%); }
+.youth-app .primary, .youth-app .switcher button[aria-pressed=true] {
+  background: linear-gradient(180deg, #ff8555, #f04418);
+  text-shadow: none;
+}
+.youth-app header button[aria-label="뒤로"] { font-size: 0; width: 40px; height: 44px; }
+.youth-app header button[aria-label="뒤로"]::after { content: ''; position: absolute; width: 10px; height: 10px; top: 16px; left: 15px; border: solid currentColor; border-width: 0 0 1.6px 1.6px; transform: rotate(45deg); }
+.youth-app .list-toolbar select { width: 100px; min-height: 32px; padding: 5px 10px 5px 25px; font-size: 12px; background-color: #fff; }
+.youth-app .list-toolbar { position: relative; }
+.youth-app .list-toolbar::after { content: '☰'; font-size: 10px; color: #8b8480; position: absolute; right: 78px; pointer-events: none; }
+.youth-app .profile-links .profile-art { mask-image: none; width: calc(100% + 32px); max-width: none; margin-left: -16px; }
+.youth-app .restart-button { margin-top: 14px; font-size: 13px; }
+.youth-app .age-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.youth-app.screen-info { background: linear-gradient(160deg, #ff996d 0%, #ffb69a 22%, #fff5ef 52%, #fff 76%); }
+.youth-app.screen-info header, .youth-app.screen-info header button { color: #fff; }
+.youth-app .youth-info .youth-info-art { width: calc(100% + 32px); max-width: none; margin: -8px -16px 0; border-radius: 0; mask-image: linear-gradient(#000 84%, transparent 100%); }
+.youth-app.screen-info {
+  background: radial-gradient(ellipse at 48% 0%, #ff9566 0%, #ffaf8d 25%, #ffe7dc 49%, #fff 74%);
+}
+.youth-app.screen-info .youth-info .youth-info-art {
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 82%, transparent 100%);
+}
+.youth-app.screen-info {
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: center top, center top;
+  background-size: 100% auto, 100% 100%;
+}
+.youth-app.screen-info header { background: transparent; }
+.youth-app.screen-info header button[aria-label="뒤로"] { top: 32px; }
+.youth-app.screen-info header button[aria-label="뒤로"]::after { display: none; }
+.youth-app .youth-info { gap: 12px; }
+.youth-app .youth-info-illustration { height: 258px; flex: 0 0 auto; }
+.youth-app .youth-info .info-intro { margin: 0 0 12px; }
+.youth-app .youth-info .info-intro h1 { font-size: 29px; }
+.youth-app .youth-info label { font-size: 15px; color: #a55732; }
+.youth-app .youth-info input { margin-top: 9px; margin-bottom: 0; min-height: 49px; border-radius: 17px; border-color: #f3ded4; background: #fff; color: #292129; font-weight: 400; }
+.youth-app .youth-info > small { margin-top: -5px; font-size: 12px; color: #74685f; }
+.youth-app .youth-info fieldset { margin-top: 9px; }
+.youth-app .youth-info legend { color: #a55732; font-size: 15px; }
+.youth-app .youth-info .age-options { display: flex; gap: 10px; }
+.youth-app .youth-info .age-options button { min-width: 62px; min-height: 46px; border-radius: 17px; background: #fff; border-color: #fff0e8; color: #28222b; font-size: 14px; box-shadow: 0 2px 3px #c67b4c12; }
+.youth-app .youth-info .age-options button[aria-pressed=true] { background: #ff8957; border-color: #ff8957; color: #fff; }
+.youth-app .youth-info > .primary { margin-top: 3px; border-radius: 16px; }
+.youth-app :is(input, textarea, select) { line-height: 1.5; }
+.youth-app textarea { overflow-wrap: anywhere; }
+.youth-app .story-counts > small, .youth-app .comment-count { line-height: 1; }
+.youth-app .feedback-form .stamp-picker button { min-width: 0; overflow-wrap: normal; }
+.youth-app .feedback-form .stamp-picker button[aria-pressed=true] { background: linear-gradient(180deg, #ffb088, #f35b2d); color: #fff; border-color: transparent; }
+.youth-app .feedback-form .stamp-picker img { max-width: 100%; }
+.youth-app .reply-actions { gap: 9px; }
+.youth-app .reply-actions > .text-button { min-height: 32px; padding-block: 4px; font-size: 12px; }
+.youth-app .writing-form .tag-picker { gap: 8px; }
+.youth-app nav { flex-shrink: 0; }
+@media (max-width: 360px) {
+  .youth-app .page-intro h1 { font-size: 23px; }
+  .youth-app .feedback-form h2 { font-size: 24px; }
+  .youth-app .tag-picker button { padding-inline: 10px; }
+}
+.youth-app.role-entry { background: linear-gradient(155deg, #f0e5ff, #fff 58%, #fff0e5); }
+.youth-app.role-entry header { justify-content: flex-start; color: #76509b; }
+.youth-app.role-entry main { padding-top: 32px; }
+.youth-app.role-entry h1 { font-size: 25px; }
+.youth-app.role-entry main > p { font-size: 13px; color: #786d70; }
+.youth-app .role-card { display: grid; width: 100%; margin-top: 32px; padding: 24px; gap: 7px; text-align: left; border-radius: 24px; background: linear-gradient(130deg, #fff, #ffe5d6); border-color: #f6d6c6; }
+.youth-app .role-card strong { color: #9c4929; font-size: 19px; }
+.youth-app .role-card span { font-size: 13px; }
+.youth-app .role-demo-note { margin-top: 18px; line-height: 1.7; }
+.youth-app nav .bottom-menu-icon { width: 26px; height: 26px; display: block; overflow: visible; }
+.youth-app nav .bottom-menu-icon path { stroke-width: 2.2; }
+.youth-app nav button:nth-child(2) .bottom-menu-icon { width: 26px; height: 26px; }
+.youth-app:is(.screen-home, .screen-mine, .screen-feed, .screen-received) .tag-picker {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 7px;
+  scrollbar-width: none;
+  padding: 2px 0;
+  -webkit-overflow-scrolling: touch;
+}
+.youth-app:is(.screen-home, .screen-mine, .screen-feed, .screen-received) .tag-picker::-webkit-scrollbar { display: none; }
+.youth-app:is(.screen-home, .screen-mine, .screen-feed, .screen-received) .tag-picker button {
+  flex: 0 0 auto;
+  min-width: 54px;
+  min-inline-size: 54px;
+  min-height: 27px;
+  padding: 3px 11px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 999px;
+}
+.youth-app .draggable-tags, .youth-app .draggable-tags button { cursor: grab; user-select: none; }
+.youth-app .draggable-tags[data-dragging], .youth-app .draggable-tags[data-dragging] button { cursor: grabbing; }
+.youth-app nav button > span { height: 40px; width: min(100%, 82px); margin-inline: auto; border-radius: 999px; }
+.youth-app nav button[aria-current=page] > span { width: min(100%, 82px); }
+.youth-app nav button { display: grid; justify-items: stretch; align-content: start; gap: 6px; padding: 4px 3px 8px; }
+.youth-app.screen-profile { background-color: #fff; background-repeat: no-repeat; background-position: center top; background-size: 100% auto, 100% 100%; }
+.youth-app.screen-profile header { visibility: hidden; }
+.youth-app .profile-illustration { height: 323px; }
+.youth-app .profile-links .story { width: 100%; margin-bottom: 12px; padding: 12px 16px; box-shadow: 0 2px 3px #b9653710; }
+.youth-app .restart-button { color: #8b6250; padding-block: 8px; }

@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import profileArt from './profile-art.png';
+import youthInfoArt from './youth-info-art.png';
 import brandArt from './brand.png';
 import gratefulArt from './stamp-0.png';
 import helpedArt from './stamp-1.png';
@@ -23,7 +24,7 @@ const topicPaths: Partial<Record<Draft['tag'], string>> = {
   HEALTH: 'M6 2.5h4V6h3.5v4H10v3.5H6V10H2.5V6H6z',
   OTHER: 'M8 2.5 9.6 6l3.9 2-3.9 2L8 13.5 6.4 10 2.5 8l3.9-2z',
 };
-const youthAges = ['20대', '30대', '40대', '50대', '60대', '70대 이상'];
+const youthAges = ['20대', '30대', '40대'];
 
 function HeartIcon({ filled = false }: { filled?: boolean }) {
   return <svg viewBox="0 0 20 20" fill={filled ? 'currentColor' : 'none'} aria-hidden="true">
@@ -55,7 +56,7 @@ function restore<T,>(key: string, fallback: T): T {
   catch { return fallback; }
 }
 
-export function YouthApp({ userId }: { userId?: string } = {}) {
+export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: () => void } = {}) {
   const key = userId ? 'on-youth-server-' + userId : 'on-youth-demo';
   const [items, setItems] = useState<Worry[]>(() => {
     const saved = restore<Worry[]>(key, []);
@@ -76,6 +77,7 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
   const [selected, select] = useState<number>();
   const [replyId, selectReply] = useState<number>();
   const [filter, setFilter] = useState('');
+  const tagDrag = useRef({ active: false, moved: false, startX: 0, scrollLeft: 0 });
   const [oldestFirst, setOldestFirst] = useState(false);
   const [draft, setDraft] = useState<Draft>(empty);
   const [editing, setEditing] = useState(false);
@@ -362,7 +364,38 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
     const visible = available.filter(item => !filter || item.tag === filter).sort((a, b) =>
       oldestFirst ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
     return <>
-      <div className="tag-picker" role="group" aria-label="고민 주제">
+      <div className="tag-picker draggable-tags" role="group" aria-label="고민 주제"
+        onPointerDown={event => {
+          tagDrag.current.moved = false;
+          if (event.pointerType !== 'mouse' || event.button !== 0) return;
+          tagDrag.current = {
+            active: true, moved: false, startX: event.clientX, scrollLeft: event.currentTarget.scrollLeft,
+          };
+          (event.target as HTMLElement).setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={event => {
+          const drag = tagDrag.current;
+          if (!drag.active || event.pointerType !== 'mouse') return;
+          const distance = event.clientX - drag.startX;
+          if (Math.abs(distance) > 5) drag.moved = true;
+          if (drag.moved) {
+            event.currentTarget.scrollLeft = drag.scrollLeft - distance;
+            event.currentTarget.dataset.dragging = 'true';
+          }
+        }}
+        onPointerUp={event => {
+          tagDrag.current.active = false;
+          delete event.currentTarget.dataset.dragging;
+        }}
+        onPointerCancel={event => {
+          tagDrag.current.active = false;
+          delete event.currentTarget.dataset.dragging;
+        }}
+        onClickCapture={event => {
+          if (!tagDrag.current.moved || event.detail === 0) return;
+          event.preventDefault();
+          event.stopPropagation();
+        }}>
         {[['', '전체'], ...Object.entries(tags)].map(([value, label]) =>
           <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>
             {label}
@@ -394,9 +427,16 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
     {list('received')}
   </>;
   if (page === 'profile') body = <section className="profile-links">
-    <img className="profile-art" src={profileArt} alt="" />
+    <div className="profile-illustration" aria-hidden="true" />
     <button className="card story" onClick={() => { setNicknameDraft(nickname); go(userId ? 'nickname' : 'info'); }}>프로필 수정 <span className="chevron-circle" aria-hidden="true" /></button>
     <button className="card story" onClick={() => go('alerts')}>알림 <span className="chevron-circle" aria-hidden="true" /></button>
+    <button className="text-button restart-button" onClick={() => {
+      if (!confirm('저장된 사용자 ID를 지우고 처음부터 시작할까요?')) return;
+      localStorage.removeItem('hanol-server-user-id');
+      localStorage.removeItem('hanol-profile');
+      if (onRestart) onRestart();
+      else { setNicknameDraft(''); setAge(''); go('info'); }
+    }}>처음부터 다시 시작</button>
   </section>;
   if (page === 'info') body = <form className="stack youth-info" onSubmit={event => {
     event.preventDefault();
@@ -411,7 +451,7 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
     localStorage.setItem(key + '-age', JSON.stringify(age));
     go('profile');
   }}>
-    <img className="profile-art" src={profileArt} alt="" />
+    <div className="youth-info-illustration" aria-hidden="true" />
     <div className="info-intro"><h1>반가워요, <span>청년</span></h1><p>인생 선배께 전할 이름을 알려주세요</p></div>
     <label>닉네임 <input placeholder="예: 따뜻한마음" aria-invalid={Boolean(error && error.includes('닉네임'))}
       value={nicknameDraft} onChange={event => { setNicknameDraft(event.target.value); setError(''); }} /></label>
@@ -489,7 +529,11 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
   </form>;
   if (page === 'done' && !crisisNotice) body = <section className="completion"><span aria-hidden="true">✓</span><h1>고민을 올렸어요</h1>
     <p>인생 선배께 글이 전해졌어요.</p>
-    <div className="completion-buttons"><button className="primary full-width" onClick={() => go('mine')}>내 고민 보러가기</button>
+    <div className="completion-buttons"><button className="primary full-width" onClick={() => {
+      selectReply(undefined);
+      setFrom('mine');
+      go('detail');
+    }}>내 고민 보러가기</button>
       <button className="primary full-width home-button" onClick={() => go('home')}><i className="nav-glyph glyph-home" aria-hidden="true" />홈으로 돌아가기</button></div>
   </section>;
   if (page === 'detail' && worry) body = reply ? <>
@@ -596,7 +640,9 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
   const canGoBack = ['form', 'detail', 'done', 'alerts', 'nickname', 'info'].includes(page);
   const actionSheet = action === 'heart' || action === 'update';
   const activeTab = page === 'received' ? 'received' : page === 'profile' || page === 'alerts' ? 'profile' : 'home';
-  return <div className={`youth-app screen-${crisisNotice ? 'form' : page}${replyList && !reply ? ' screen-reply-list' : ''}${reply ? ' screen-reply' : ''}${actionSheet ? ' feedback-screen feedback-' + action : ''}${completed && completed !== 'report' ? ' result-screen' : ''}`}>
+  return <div style={page === 'info' ? { backgroundImage: `url("${youthInfoArt}"), linear-gradient(#fff1e9, #fff)` }
+    : page === 'profile' ? { backgroundImage: `url("${profileArt}"), linear-gradient(145deg, #fff5ee, #fff)` } : undefined}
+    className={`youth-app screen-${crisisNotice ? 'form' : page}${replyList && !reply ? ' screen-reply-list' : ''}${reply ? ' screen-reply' : ''}${actionSheet ? ' feedback-screen feedback-' + action : ''}${completed && completed !== 'report' ? ' result-screen' : ''}`}>
     <header>
       {canGoBack && <button aria-label="뒤로" disabled={pending || crisisNotice || Boolean(draftWarning)} onClick={() => {
         if (completed || action) { setCompleted(undefined); setAction(undefined); setError(''); }
@@ -679,7 +725,14 @@ export function YouthApp({ userId }: { userId?: string } = {}) {
     {(!canGoBack || page === 'alerts') && <nav aria-label="청년 메뉴">
       {(['home', 'received', 'profile'] as const).map(tab => <button key={tab}
         aria-current={activeTab === tab ? 'page' : undefined} onClick={() => go(tab)}>
-        <span aria-hidden="true"><i className={`nav-glyph glyph-${tab}`} /></span>
+        <span aria-hidden="true"><svg className="bottom-menu-icon" viewBox="0 0 32 32" preserveAspectRatio={tab === 'received' ? 'none' : 'xMidYMid meet'} fill="none">
+          <path d={tab === 'home'
+            ? 'M5 14 16 4l11 10v14H5V14Zm7 14V18h8v10'
+            : tab === 'received'
+              ? 'M5 5.5h22a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H10l-7 5.5v-22.5a2 2 0 0 1 2-2Z'
+              : 'M22 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0ZM5 29c0-6 4.5-11 11-11s11 5 11 11'}
+            stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg></span>
         {{ home: '홈', received: '답장', profile: '내 한 올' }[tab]}
       </button>)}
     </nav>}
