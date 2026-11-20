@@ -1,3 +1,4 @@
+import ContentWarningDialog from '../../src/ContentWarningDialog';
 import {noticeDay,noticeTime} from './noticeDates';
 import BottomNavigation from '../../src/BottomNavigation';
 import SortDropdown from '../../src/SortDropdown';
@@ -100,6 +101,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
   const [showMenu, setShowMenu] = useState(false);
   const [letterZoom, setLetterZoom] = useState(false);
   const [draftWarning, setDraftWarning] = useState('');
+  const [draftWarningCode, setDraftWarningCode] = useState<string>();
   const [checkedDraft, setCheckedDraft] = useState(false);
   const [activeCard, setActiveCard] = useState<number>();
   const [replyList, setReplyList] = useState(false);
@@ -192,7 +194,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     setLoadError('');
     setShowMenu(false);
     setActiveCard(undefined);
-    setDraftWarning('');
+    setDraftWarning('');setDraftWarningCode(undefined);
     setCrisisNotice(false);
     setReplyList(false);
   }
@@ -260,7 +262,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
   }
   function showWritingError(failure: unknown) {
     const message = failure instanceof Error ? failure.message : '다시 시도해 주세요.';
-    if (failure instanceof ApiError && /^FILTER_422_00[123]$/.test(failure.code ?? '')) setDraftWarning(message);
+    if (failure instanceof ApiError && /^FILTER_422_00[123]$/.test(failure.code ?? '')) {setDraftWarningCode(failure.code);setDraftWarning(message);}
     else setError(message);
   }
   async function submit(event: FormEvent) {
@@ -269,7 +271,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     setCheckedDraft(true);
     if (!draft.title.trim() || !draft.content.trim()) return;
     setError('');
-    setDraftWarning('');
+    setDraftWarning('');setDraftWarningCode(undefined);
     if (!userId) {
       const warning = demoWorryWarning(draft.title, draft.content);
       if (warning) { setDraftWarning(warning); return; }
@@ -639,12 +641,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
       {letterZoom && reply?.image && <div className="letter-zoom" role="dialog" aria-modal="true" aria-label="손편지 크게 보기">
         <button aria-label="닫기" onClick={() => setLetterZoom(false)}>×</button><img src={reply.image} alt="선배님의 손편지 답장" />
       </div>}
-      {draftWarning && <div className="dialog-backdrop"><section className="writing-dialog" role="alertdialog" aria-modal="true" aria-labelledby="writing-warning">
-        <span aria-hidden="true">!</span><h2 id="writing-warning">내용을 한 번 더 확인해 주세요</h2>
-        <p>외부 연락처나 부적절한 표현이 포함되어 있어요. 내용을 수정해 주세요.</p>
-        <div className="writing-reason"><strong>확인 항목</strong><p>{draftWarning}</p></div>
-        <button className="primary full-width" autoFocus onClick={() => setDraftWarning('')}>다음</button>
-      </section></div>}
+      {draftWarning && <ContentWarningDialog worry message={draftWarning} code={draftWarningCode} onNext={()=>{setDraftWarning('');setDraftWarningCode(undefined)}}/>}
       {crisisNotice && <div className="dialog-backdrop"><section className="writing-dialog crisis-dialog" role="alertdialog" aria-modal="true" aria-labelledby="crisis-notice">
         <span aria-hidden="true">!</span><h2 id="crisis-notice">혼자 감당하기 힘들 때는<br />전문 상담사와 이야기해보세요.</h2>
         <p><a href="tel:109">자살예방상담전화 109</a></p>

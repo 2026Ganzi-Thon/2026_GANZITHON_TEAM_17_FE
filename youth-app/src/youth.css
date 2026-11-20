@@ -4,7 +4,7 @@
 .youth-app button { cursor: pointer; color: inherit; border: 1px solid #eed9ce; background: #fffdfa; border-radius: 12px; padding: 10px 14px; min-height: 44px; }
 .youth-app button:disabled { opacity: .55; cursor: default; }
 .youth-app button:focus-visible, .youth-app input:focus-visible, .youth-app textarea:focus-visible, .youth-app select:focus-visible { outline: 2px solid #b44d26; outline-offset: 2px; }
-.youth-app { width: min(100%, 460px); min-height: 100dvh; margin: auto; background: #fffaf7; display: flex; flex-direction: column; }
+.youth-app { width:100%;max-width:440px; min-height: 100dvh; margin: auto; background: #fffaf7; display: flex; flex-direction: column; }
 .youth-app header { display: flex; align-items: center; gap: 12px; min-height: 62px; padding: 8px 20px; border-bottom: 1px solid #f1ded4; }
 .youth-app header button { border: 0; background: transparent; padding: 0 10px; font-size: 28px; }
 .youth-app .demo { margin-left: auto; color: #5a6254; }
@@ -15,7 +15,7 @@
 .youth-app h1 { font-size: 30px; line-height: 1.3; letter-spacing: -.04em; }
 .youth-app h2 { font-size: 21px; overflow-wrap: anywhere; }
 .youth-app h3 { font-size: 17px; }
-.youth-app .primary { background: linear-gradient(180deg, #ba4e25, #a13711); border-color: #a13711; color: white; font-weight: bold; }
+.youth-app .primary { background: linear-gradient(180deg, #f87e4a, #e54921); border-color: #a13711; color: white; font-weight: bold; }
 .youth-app .card { background: #fffdfa; border: 1px solid #f1ded4; padding: 16px; border-radius: 16px; margin-bottom: 12px; overflow-wrap: anywhere; }
 .youth-app .links button, .youth-app .story { width: 100%; text-align: left; }
 .youth-app .links button span { float: right; }
@@ -40,16 +40,16 @@
 
 .youth-app .tag-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .youth-app .tag-picker button { border-radius: 999px; padding: 4px 10px; min-height: 36px; font-size: 13px; }
-.youth-app .tag-picker button[aria-pressed="true"] { color: #fff; background: #a84018; border-color: #a84018; }
+.youth-app .tag-picker button[aria-pressed="true"] { color: #fff; background:#ee6133;border-color:#ee6133; }
 .youth-app .story { background: #fff0e8; }
 .youth-app nav button[aria-current] { background: transparent; }
 .youth-app nav button[aria-current] span { width: min(100%, 64px); margin-inline: auto; border-radius: 999px; background: #ffede4; }
 
-.youth-app { width: min(100%, 430px); color: #211c25; background: #fff; text-align: left; }
+.youth-app { width:100%; color: #211c25; background: #fff; text-align: left; }
 .youth-app.screen-home, .youth-app.screen-mine, .youth-app.screen-feed, .youth-app.screen-received,
 .youth-app.screen-form, .youth-app.screen-profile, .youth-app.screen-alerts {
-  background: radial-gradient(ellipse at 0 100%, #ffe3d1, transparent 50%),
-    linear-gradient(150deg, #f7f1ff 2%, #e9d8fb 25%, #fffcff 57%, white 79%);
+  background: radial-gradient(ellipse 110% 55% at 100% 0%, #eaddff 0%, transparent 85%),
+    radial-gradient(ellipse 95% 65% at 0% 70%, #fdf0e7 0%, transparent 85%), #fff;
 }
 .youth-app.screen-detail, .youth-app.feedback-screen {
   background: radial-gradient(ellipse at 95% 0, #ffb393, transparent 50%),
@@ -69,12 +69,12 @@
 .youth-app .switcher { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 12px; }
 .youth-app .switcher button { background: white; border: 0; color: #863e25; font-weight: 700; }
 .youth-app .primary, .youth-app .switcher button[aria-pressed=true] {
-  color: #fff; border: 0; background: linear-gradient(180deg, #e96536, #c44016);
+  color: #fff; border: 0; background: linear-gradient(180deg, #f87e4a, #e54921);
 }
 .youth-app .full-width { width: 100%; }
 .youth-app .tag-picker { flex-wrap: nowrap; overflow: auto; padding: 3px; scrollbar-width: thin; }
 .youth-app .tag-picker button { white-space: nowrap; min-height: 32px; background: white; border: 0; }
-.youth-app .tag-picker button[aria-pressed=true] { background: #ac401b; }
+.youth-app .tag-picker button[aria-pressed=true] { background:#ee6133; }
 .youth-app .story { display: grid; gap: 7px; background: #fff9f5; border-color: #fff; box-shadow: 0 2px 7px #63394c0b; }
 .youth-app .story-meta { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px; }
 .youth-app time { color: #63576c; font-size: 12px; }
@@ -121,8 +121,8 @@
 .youth-app .page-intro h1 { font-size: clamp(22px, 7vw, 28px); }
 .youth-app .switcher button, .youth-app .primary { min-height: 48px; border-radius: 16px; }
 .youth-app .primary, .youth-app .switcher button[aria-pressed=true] {
-  background: linear-gradient(180deg, #f87c4c, #ce3a14);
-  text-shadow: 0 1px 2px #803012;
+  background: linear-gradient(180deg, #f87e4a, #e54921);
+  text-shadow:none;
 }
 .youth-app .stamp-picker img { display: block; width: min(100%, 62px); margin: 4px auto 8px; border-radius: 14px; }
 .youth-app .stamp-picker button { min-height: 112px; }
@@ -145,7 +145,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .youth-app button { transition: background-color 120ms ease, border-color 120ms ease; }
 }
-.youth-app { width: min(100%, 393px); }
+.youth-app { width:100%; }
 .youth-app .story-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 36px; padding: 0; border: 0; background: transparent; text-align: left; }
 .youth-app .story-title > span { display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 auto; background: #ffede3; color: #944321; border-radius: 50%; font-size: 25px; }
 .youth-app .story-title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -186,7 +186,7 @@
 .youth-app.screen-form main { padding-bottom: 48px; }
 .youth-app.screen-form .tag-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 330px; }
 .youth-app.screen-form .tag-picker button { min-width: 0; padding-inline: 5px; background: #ffd2bf; color: #81391e; }
-.youth-app.screen-form .tag-picker button[aria-pressed=true] { background: #ae3e1a; color: white; }
+.youth-app.screen-form .tag-picker button[aria-pressed=true] { background:#ee6133; color: white; }
 .youth-app.feedback-screen main { padding-bottom: clamp(32px, 11dvh, 96px); }
 .youth-app .feedback-form h2 { position: relative; color: #733519; font-size: 28px; margin-top: 6px; }
 .youth-app .feedback-form h2::after { content: ''; position: absolute; right: -8px; top: 24px; width: 51px; height: 23px; background: #fff0e1; border-radius: 30px; box-shadow: -15px 9px 0 -3px #fff0e1, 4px -10px 0 -3px #fff0e1; opacity: .82; }
@@ -357,7 +357,7 @@
 
 /* Youth updates from seung-eon 89b442d (2026-11-20). */
 .youth-app .primary, .youth-app .switcher button[aria-pressed=true] {
-  background: linear-gradient(180deg, #ff8555, #f04418);
+  background: linear-gradient(180deg, #f87e4a, #e54921);
   text-shadow: none;
 }
 .youth-app .profile-links .profile-art { mask-image: none; width: calc(100% + 32px); max-width: none; margin-left: -16px; }
@@ -500,3 +500,9 @@
 /* The supplied onboarding artwork includes the chevron; the real button stays focusable. */
 .youth-app.screen-info header button[aria-label="뒤로"]{top:32px}
 .youth-app.screen-info header button[aria-label="뒤로"]>svg{visibility:hidden}
+
+/* Mobile content can shrink without pushing the frame or its shared navigation. */
+.youth-app{min-width:0}
+.youth-app .story,.youth-app .story>*{min-width:0;max-width:100%}
+.youth-app .story-title>strong{min-width:0}
+.youth-app .tag-picker button[aria-pressed=true]{background:#ee6133;border-color:#ee6133}
