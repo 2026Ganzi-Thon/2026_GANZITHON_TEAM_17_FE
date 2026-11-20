@@ -1,0 +1,2 @@
+# Preserve the intentional context-line spaces in exported mail patches.
+docs/backend/*.patch -whitespace

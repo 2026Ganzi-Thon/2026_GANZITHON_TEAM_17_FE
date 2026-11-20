@@ -1,5 +1,5 @@
 /* One shared layout and icon set for both generations. */
-.bottom-navigation.bottom-navigation{--nav-color:#b597ef;--nav-active:#8766f5;--nav-pill:#eee4ff;display:flex;align-items:center;justify-content:space-around;gap:6px;box-sizing:border-box;position:fixed;z-index:10;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,440px);padding:7px 12px max(10px,env(safe-area-inset-bottom));border-top:1px solid #f2edf8;background:#fff;backdrop-filter:none}
+.bottom-navigation.bottom-navigation{--nav-color:#b491f5;--nav-active:#8766f5;--nav-pill:#eee4fc;display:flex;align-items:center;justify-content:space-around;gap:6px;box-sizing:border-box;position:fixed;z-index:10;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,440px);padding:7px 12px max(10px,env(safe-area-inset-bottom));border-top:1px solid #f2edf8;background:#fff;backdrop-filter:none}
 .bottom-navigation.bottom-navigation button{flex:1;min-width:0;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;margin:0;border:0;border-radius:0;background:transparent;color:#99929e;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:400;cursor:pointer;--nav-icon-cutout:#fff}
 .bottom-navigation.bottom-navigation button.active,.bottom-navigation.bottom-navigation button[aria-current=page]{background:transparent;color:#81758e;--nav-icon-cutout:var(--nav-pill)}
 .bottom-navigation.bottom-navigation button>.nav-icon{display:flex;align-items:center;justify-content:center;width:min(100%,110px);height:39px;max-width:100%;border-radius:999px;background:transparent;color:var(--nav-color);margin:0}
@@ -11,3 +11,9 @@
 .bottom-navigation.bottom-navigation.youth-navigation{--nav-color:#f48b65;--nav-active:#f66d3e;--nav-pill:#fff0e9;z-index:2;position:relative;left:auto;bottom:auto;transform:none;width:100%;max-width:100%;flex:0 0 auto}
 .youth-app:has(>.bottom-navigation){padding-bottom:0}
 @media print{.bottom-navigation.bottom-navigation{display:none}}
+
+/* Original Figma PNG alpha masks preserve the supplied icon shapes without modifying the files. */
+.bottom-navigation .nav-original-art{display:block;flex-shrink:0;width:32px;height:32px;background:currentColor;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;mask-size:315.4667px 39px;-webkit-mask-size:315.4667px 39px}
+.bottom-navigation .nav-original-home{mask-position:-37.7333px -3.5px;-webkit-mask-position:-37.7333px -3.5px}
+.bottom-navigation .nav-original-replies{mask-position:-141.7333px -3.5px;-webkit-mask-position:-141.7333px -3.5px}
+.bottom-navigation .nav-original-profile{mask-position:-245.3px -3.5px;-webkit-mask-position:-245.3px -3.5px}

@@ -4,6 +4,7 @@ import ReplyStories from './ReplyStories';
 import {useEffect,useRef,useState} from 'react';
 import {ChevronLeft,Check,Heart,Search,Trash2,X} from 'lucide-react';
 import {apiData,describeError} from './api';
+import {parseSentReplyDetail,isDetailEndpointUnavailable} from './sentReplyDetail';
 import type {ReplyReceipt} from './replyReceipts';
 type Item={replyId:number;worryId:number;worryTitle:string;type:'TEXT'|'VOICE'|'LETTER';likeCount:number;thanked:boolean;hasFollowUp:boolean;createdAt:string};
 type Props={receipts:ReplyReceipt[];onDeleted:(id:number)=>void;onUpdated:(id:number,content:string)=>void;onBrowse:()=>void;onBack:()=>void};
@@ -11,14 +12,26 @@ export default function SentReplies({receipts,onDeleted,onUpdated,onBrowse,onBac
  const [items,setItems]=useState<Item[]|null>(null),[selected,setSelected]=useState<number|null>(null),[target,setTarget]=useState<number|null>(null);
  const [editing,setEditing]=useState(false),[draft,setDraft]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [retry,setRetry]=useState(0),[sort,setSort]=useState('latest'),[saved,setSaved]=useState(false),[zoom,setZoom]=useState(false);
+ const [details,setDetails]=useState<Record<number,ReplyReceipt>>({}),[detailLoading,setDetailLoading]=useState(false),[detailError,setDetailError]=useState(''),[detailBlocked,setDetailBlocked]=useState(false),[detailAttempt,setDetailAttempt]=useState(0),[imageFailed,setImageFailed]=useState(false);
  const lock=useRef(false),dialogRef=useRef<HTMLElement>(null);
  useEffect(()=>{let active=true;setError('');apiData<{items:Item[]}>('/api/senior/replies').then(d=>{if(!Array.isArray(d.items))throw new Error('내 답장 목록을 확인할 수 없어요.');if(active)setItems(d.items)}).catch(e=>{if(active)setError(describeError(e))});return()=>{active=false}},[retry]);
  useEffect(()=>{if(target===null&&!saved)return;const previous=document.activeElement as HTMLElement;dialogRef.current?.querySelector<HTMLElement>('button')?.focus();return()=>previous?.focus()},[target,saved]);
- const item=items?.find(r=>r.replyId===selected),receipt=receipts.find(r=>r.replyId===selected&&!r.deleted);
+ const item=items?.find(r=>r.replyId===selected),cachedReceipt=receipts.find(r=>r.replyId===selected&&!r.deleted);
+ const receipt=detailBlocked?undefined:(selected!==null?details[selected]:undefined)||cachedReceipt;
+ useEffect(()=>{
+  if(!item)return;let active=true;const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(new DOMException('서버 응답 시간이 초과됐어요.','TimeoutError')),15000);
+  setDetailLoading(true);setDetailError('');setDetailBlocked(false);setImageFailed(false);
+  apiData<unknown>(`/api/senior/replies/${item.replyId}`,{signal:controller.signal}).then(data=>{const parsed=parseSentReplyDetail(data,item);if(active)setDetails(old=>({...old,[item.replyId]:parsed}))}).catch(error=>{if(!active)return;
+   const unavailable=isDetailEndpointUnavailable(error);
+   setDetailBlocked(!unavailable);setDetailError(unavailable?'서버에 답장 원본 조회 기능이 아직 반영되지 않았어요.':describeError(error));
+  }).finally(()=>{clearTimeout(timer);if(active)setDetailLoading(false)});
+  return()=>{active=false;clearTimeout(timer);controller.abort()};
+ },[selected,detailAttempt]);
  const unavailable=item?.worryTitle==='삭제된 고민',canEdit=Boolean(item&&receipt&&!unavailable&&item.type!=='LETTER'&&!item.thanked&&!item.hasFollowUp);
  const goList=()=>{if(editing&&draft!==receipt?.content&&!window.confirm('작성 중인 수정을 취소할까요?'))return;setSelected(null);setEditing(false);setError('');setZoom(false)};
  const remove=async()=>{if(target===null||lock.current)return;const id=target;lock.current=true;setBusy(true);setError('');try{const d=await apiData<{replyId:number}>(`/api/replies/${id}`,{method:'DELETE'});if(d.replyId!==id)throw new Error('삭제 응답을 확인할 수 없어요.');onDeleted(id);setItems(old=>old?.filter(r=>r.replyId!==id)||[]);setTarget(null);setSelected(null);setEditing(false);setMessage('답장을 삭제했어요.')}catch(e){setError(describeError(e))}finally{lock.current=false;setBusy(false)}};
- const update=async()=>{if(!item||!canEdit||lock.current||!draft.trim()||Array.from(draft).length>1000)return;lock.current=true;setBusy(true);setError('');try{await apiData(`/api/replies/${item.replyId}`,{method:'PATCH',body:JSON.stringify({content:draft.trim()})});onUpdated(item.replyId,draft.trim());setEditing(false);setSaved(true);setRetry(n=>n+1)}catch(e){setError(describeError(e))}finally{lock.current=false;setBusy(false)}};
+ const update=async()=>{if(!item||!canEdit||lock.current||!draft.trim()||Array.from(draft).length>1000)return;lock.current=true;setBusy(true);setError('');try{await apiData(`/api/replies/${item.replyId}`,{method:'PATCH',body:JSON.stringify({content:draft.trim()})});onUpdated(item.replyId,draft.trim());setDetails(old=>({...old,[item.replyId]:{...receipt!,content:draft.trim()}}));setEditing(false);setSaved(true);setRetry(n=>n+1)}catch(e){setError(describeError(e))}finally{lock.current=false;setBusy(false)}};
  const trapDialog=(e:React.KeyboardEvent)=>{if(e.key==='Escape'&&!busy){setTarget(null);setSaved(false)}if(e.key==='Tab'){const buttons=dialogRef.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');if(!buttons?.length)return;const first=buttons[0],last=buttons[buttons.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}};
  return <section className={`content-page sent-replies-page ${item?'sent-reply-detail':''}`}>
  <div className="screen-heading"><button className="icon-button" disabled={busy} aria-label="뒤로 가기" onClick={item?goList:onBack}><ChevronLeft/></button>{item&&<h1>내 답장</h1>}</div>
@@ -26,7 +39,8 @@ export default function SentReplies({receipts,onDeleted,onUpdated,onBrowse,onBac
  {message&&<p className="success" role="status">{message}</p>}
  {error&&target===null&&<div className="notice" role="alert"><p>{error}</p><button className="text-button" disabled={busy} onClick={()=>setRetry(n=>n+1)}>다시 불러오기</button></div>}
  {item?<><h2 className="sent-worry-title">{item.worryTitle}</h2><article className={`sent-reply-body ${item.type==='LETTER'?'handwritten':''}`}>
- {receipt?editing?<><label className="sr-only" htmlFor="reply-edit">답장 수정</label><textarea id="reply-edit" value={draft} disabled={busy} maxLength={1000} onChange={e=>setDraft(e.target.value)} rows={10}/><p className="helper">{Array.from(draft).length}/1,000자</p></>:item.type==='LETTER'&&receipt.imageUrl?<div className="photo-preview"><img className="letter-photo" src={resolveApiImageUrl(receipt.imageUrl)} alt="전송한 손편지 원본"/><button className="photo-zoom" aria-label="손편지 크게 보기" onClick={()=>setZoom(true)}><Search size={18}/></button></div>:<p className="reply-detail-text">{receipt.content}</p>:<p className="notice">이 기기에 답장 본문이 없어요. 현재 서버 목록은 본문을 제공하지 않아 읽기와 수정이 제한돼요.</p>}
+ {receipt?editing?<><label className="sr-only" htmlFor="reply-edit">답장 수정</label><textarea id="reply-edit" value={draft} disabled={busy} maxLength={1000} onChange={e=>setDraft(e.target.value)} rows={10}/><p className="helper">{Array.from(draft).length}/1,000자</p></>:item.type==='LETTER'&&receipt.imageUrl?<div className="photo-preview"><img key={`${item.replyId}:${detailAttempt}`} className="letter-photo" src={resolveApiImageUrl(receipt.imageUrl)} alt="전송한 손편지 원본" onError={()=>setImageFailed(true)}/><button className="photo-zoom" disabled={imageFailed} aria-label="손편지 크게 보기" onClick={()=>setZoom(true)}><Search size={18}/></button></div>:<p className="reply-detail-text">{receipt.content}</p>:<div className="notice"><p role={detailLoading?'status':'alert'}>{detailLoading?'서버에서 답장 원본을 불러오고 있어요…':detailError||'답장 원본을 불러오지 못했어요.'}</p>{!detailLoading&&<button className="secondary" onClick={()=>setDetailAttempt(n=>n+1)}>다시 불러오기</button>}</div>}
+ {imageFailed&&<div className="notice" role="alert"><p>손편지 이미지를 불러오지 못했어요.</p><button className="secondary" onClick={()=>setDetailAttempt(n=>n+1)}>다시 불러오기</button></div>}
  {item.type!=='LETTER'&&<div className="reply-reactions"><span><Heart size={20}/>{item.likeCount}</span><span>{item.thanked?'고마움 도착':''}{item.hasFollowUp?' · 후일담 도착':''}</span></div>}</article>
  {!editing&&(item.hasFollowUp||item.thanked)&&<ReplyStories key={item.replyId} replyId={item.replyId}/>}
  {editing?<div className="button-row"><button className="secondary" disabled={busy} onClick={()=>{if(draft!==receipt?.content&&!window.confirm('수정한 내용을 취소할까요?'))return;setEditing(false)}}>처음으로</button><button className="primary" disabled={busy||!draft.trim()||Array.from(draft).length>1000} onClick={()=>void update()}>{busy?'저장 중…':'수정 내용 저장'}</button></div>:<><p className="helper reply-edit-policy">{item.type==='LETTER'?'손편지 답장은 수정할 수 없습니다.':item.thanked||item.hasFollowUp?'고마움이나 후일담을 받은 답장은 수정할 수 없어요.':''}</p><div className="button-row">{canEdit&&<button className="secondary" onClick={()=>{setDraft(receipt!.content);setEditing(true);setMessage('');setError('')}}>수정하기</button>}<button className="primary" disabled={busy} onClick={()=>setTarget(item.replyId)}>삭제하기</button></div></>}

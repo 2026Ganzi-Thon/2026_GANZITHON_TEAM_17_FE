@@ -1,4 +1,4 @@
-import {Home,MessageSquareMore,UserRound} from 'lucide-react';
+import {brand} from './brand';
 import {useLayoutEffect,useRef} from 'react';
 import {navigationFrame} from './navigationFrame';
 
@@ -34,7 +34,7 @@ export default function BottomNavigation({active,onSelect,youth=false}:{active:N
  },[youth]);
  return <nav ref={navRef} className={`bottom-navigation ${youth?'youth-navigation':'senior-navigation'}`} aria-label={youth?'청년 메뉴':'주요 메뉴'}>
   {(['home','replies','profile'] as const).map(tab=><button type="button" key={tab} className={active===tab?'active':''} aria-current={active===tab?'page':undefined} onClick={()=>onSelect(tab)}>
-   <span className="nav-icon" aria-hidden="true">{tab==='home'?<Home className="nav-home" fill="currentColor"><path d="M9 21v-8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v8Z" fill="var(--nav-icon-cutout)" stroke="none"/></Home>:tab==='replies'?<MessageSquareMore/>:<UserRound/>}</span>
+   <span className="nav-icon" aria-hidden="true"><span className={`nav-original-art nav-original-${tab}`} style={{maskImage:`url("${tab==='profile'?brand.navigationReplies:brand.navigationProfile}")`,WebkitMaskImage:`url("${tab==='profile'?brand.navigationReplies:brand.navigationProfile}")`}}/></span>
    <span className="nav-label">{tab==='home'?'홈':tab==='replies'?(youth?'답장':'내 답장'):'내 한 올'}</span>
   </button>)}
  </nav>;

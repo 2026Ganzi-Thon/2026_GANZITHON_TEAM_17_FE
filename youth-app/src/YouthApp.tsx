@@ -103,6 +103,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
   const [action, setAction] = useState<Action>();
   const [completed, setCompleted] = useState<Action>();
   const [confirmReport, setConfirmReport] = useState(false);
+  const [reportAutoHidden,setReportAutoHidden]=useState(false);
   const [hideStep, setHideStep] = useState<'confirm' | 'done'>();
   const [privacyNotice, setPrivacyNotice] = useState(false);
   const [nickname, setNickname] = useState(() => initialNickname || restore(key + '-nickname', '포근한 양 312'));
@@ -201,6 +202,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     setAction(undefined);
     setCompleted(undefined);
     setHideStep(undefined);
+    setReportAutoHidden(false);
     setPrivacyNotice(false);
     setFilter('');
     setLoadError('');
@@ -240,18 +242,13 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     setDraft(item ? { title: item.title, content: item.content, tag: item.tag, visibility: item.visibility } : empty);
     go('form');
   }
-  function demoOnly() {
-    if (!userId) return true;
-    setError('이 기능의 서버 연동은 아직 준비 중이에요.');
-    return false;
-  }
-  async function mutate(path: string, method: string, after: (result?: { likedByMe?: boolean; nickname?: string }) => void, data?: object) {
+  async function mutate(path: string, method: string, after: (result?: { likedByMe?: boolean; nickname?: string;worryId?:number;hidden?:boolean;replyId?:number;visibility?:string }) => void, data?: object) {
     if (pending) return;
     if (!userId) { after(); return; }
     setPending(true);
     setError('');
     try {
-      const result = await api<{ likedByMe?: boolean; nickname?: string }>(userId, path, method, data);
+      const result = await api<{ likedByMe?: boolean; nickname?: string;worryId?:number;hidden?:boolean;replyId?:number;visibility?:string }>(userId, path, method, data);
       after(result);
     } catch (failure) {
       if (page === 'form') showWritingError(failure);
@@ -324,6 +321,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     setNote('');
     setPublic(false);
     setConfirmReport(false);
+    setReportAutoHidden(false);
     setAction(next);
   }
   function submitAction(event: FormEvent) {
@@ -343,10 +341,13 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
           setAction(undefined);
           setCompleted('report');
         }, { reason: codes[choice] });
-      } else if (demoOnly()) {
-        // Reporting alone does not choose the separate hide action.
-        setAction(undefined);
-        setCompleted('report');
+      } else {
+        const codes:Record<string,string>={'광고·홍보':'AD','욕설 및 비방':'ABUSE','욕설':'ABUSE','기타':'ETC'};
+        void mutate('/api/worries/'+worry.id+'/reports','POST',result=>{
+          if(userId&&(result?.worryId!==worry.id||result.hidden!==true))throw new Error('신고 처리 결과를 확인할 수 없어요.');
+          if(userId)changeWorry({hidden:true});
+          setReportAutoHidden(Boolean(userId));setAction(undefined);setCompleted('report');
+        },{reason:codes[choice]});
       }
     }
     if (action === 'heart' && reply && worry.mine && !reply.heart) {
@@ -490,7 +491,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     <label>닉네임 <input value={nicknameDraft} maxLength={10} onChange={event => setNicknameDraft(event.target.value)} /></label>
     <small>2~10자로 입력해주세요.</small>
     <button className="primary" disabled={pending}>저장하기</button>
-  </form>{onRestart && <div className="restart-section"><button type="button" disabled={pending} onClick={onRestart}>처음부터 다시 시작</button><p>시연용 · 이 기기의 사용자 ID를 초기화하고 역할을 다시 선택해요.</p></div>}</>;
+  </form></>;
   const serverAlertCard = (item: Notification) =>
     <button className={`card story notice-card ${item.read?'is-read':'is-unread'}`} key={item.notificationId} disabled={pending} onClick={() => {
       void mutate('/api/notifications/' + item.notificationId + '/read', 'PATCH', () => {
@@ -557,7 +558,10 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
       {!reply.heart && <button className="primary full-width" onClick={() => startAction('heart')}>고마움 전하기</button>}
       {!reply.update && <button className="primary full-width" onClick={() => startAction('update')}>후일담 전하기</button>}
       {worry.visibility === 'PUBLIC' && reply.update?.public && <button onClick={() => {
-        if (reply.update && demoOnly()) changeReply({ update: { ...reply.update, public: false } });
+        if(reply.update)void mutate('/api/replies/'+reply.id+'/follow-ups/visibility','PATCH',result=>{
+          if(userId&&(result?.replyId!==reply.id||result.visibility!=='SENIORS_ONLY'))throw new Error('공개 범위 변경 결과를 확인할 수 없어요.');
+          if(reply.update)changeReply({update:{...reply.update,public:false}});
+        },{visibility:'SENIORS_ONLY'});
       }}>후일담 선배님께만 공개</button>}
       <button className="text-button" onClick={() => startAction('report')}>신고하기</button>
     </div> : <button aria-pressed={Boolean(reply.liked)} disabled={pending} onClick={() => {
@@ -705,11 +709,12 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
         <section className="report-receipt" role="dialog" aria-modal="true" aria-labelledby="report-receipt-title">
           <span className="report-symbol" aria-hidden="true"><CheckMark /></span>
           <h2 id="report-receipt-title">신고가 접수됐어요</h2>
-          <p>확인 후 필요한 조치를 진행할게요.</p>
-          {!worry?.mine && <div className="hide-offer"><strong>이 고민을 숨길까요?</strong><small>숨기면 내 화면에서 이 글이 보이지 않아요.</small>
+          <p>{reportAutoHidden?'신고가 접수되어 이 고민을 숨겼어요.':'확인 후 필요한 조치를 진행할게요.'}</p>
+          {!worry?.mine && !reportAutoHidden && <div className="hide-offer"><strong>이 고민을 숨길까요?</strong><small>숨기면 내 화면에서 이 글이 보이지 않아요.</small>
             <button className="primary full-width" onClick={() => { setError('');setCompleted(undefined); setHideStep('confirm'); }}>고민 숨기기</button>
             <button className="text-button" onClick={() => go('feed')}>나중에</button>
           </div>}
+          {reportAutoHidden&&<button className="primary full-width" autoFocus onClick={()=>go('feed')}>고민 목록으로</button>}
           {worry?.mine && <button className="primary full-width" autoFocus onClick={() => setCompleted(undefined)}>닫기</button>}
         </section>
       </div>}

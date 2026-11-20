@@ -128,3 +128,5 @@ h1,h2,h3,h4,h5,h6,.onboarding label,.onboarding legend,.nickname-editor label,.p
 .worry-meta>time{flex-shrink:0}
 .worry-title-toggle>h2{overflow-wrap:anywhere}
 .worries-page .worry-actions{flex-wrap:wrap}
+
+.wool-profile-row button .profile-pencil{display:block;flex-shrink:0;width:19px;height:19px;object-fit:contain}

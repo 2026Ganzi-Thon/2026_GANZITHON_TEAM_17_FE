@@ -1,6 +1,9 @@
 /** Single source for supplied original Hanol brand artwork. */
 const base=import.meta.env.BASE_URL;
 export const brand={
+ navigationProfile:`${base}brand/navigation-profile.png`,
+ navigationReplies:`${base}brand/navigation-replies.png`,
+ profilePencil:`${base}brand/profile-pencil.png`,
  oni:`${base}brand/oni.png`,
  oniScene:`${base}brand/Group%2021.png`,
  certificateMedal:`${base}brand/Group%2029.png`,
