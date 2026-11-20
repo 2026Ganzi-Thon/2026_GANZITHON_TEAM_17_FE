@@ -1,3 +1,4 @@
+import {resolveApiImageUrl} from '../../src/imageUrl';
 import demoLetter from './demo-letter.jpg';
 export { demoLetter };
 
@@ -115,7 +116,7 @@ type Detail = Draft & {
   }>;
 };
 export type Notification = {
-  notificationId: number; title: string; read: boolean; createdAt: string;
+  notificationId: number; title: string; content?: string; read: boolean; createdAt: string;
   target: { kind: string; id: number | null };
 };
 export async function getDetail(userId: string, id: number): Promise<Worry> {
@@ -126,7 +127,7 @@ export async function getDetail(userId: string, id: number): Promise<Worry> {
     hidden: row.hidden, liked: row.likedByMe, date: row.createdAt,
     replies: row.replies.map(reply => ({
       id: reply.replyId, author: reply.senior.nickname, content: reply.content ?? '',
-      image: reply.imageUrl ?? undefined, liked: reply.likedByMe,
+      image: resolveApiImageUrl(reply.imageUrl), liked: reply.likedByMe,
       update: reply.followUp ? {
         content: reply.followUp.content, public: reply.followUp.visibility === 'PUBLIC',
       } : undefined,

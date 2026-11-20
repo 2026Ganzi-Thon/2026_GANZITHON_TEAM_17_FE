@@ -2,6 +2,9 @@
 const base=import.meta.env.BASE_URL;
 export const brand={
  oni:`${base}brand/oni.png`,
+ oniScene:`${base}brand/Group%2021.png`,
+ certificateMedal:`${base}brand/Group%2029.png`,
+ certificateMedalGlow:`${base}brand/Ellipse%2032.png`,
  saebomi:`${base}brand/saebomi.png`,
  symbol:`${base}brand/logo-symbol.png`,
  wordmarkWhite:`${base}brand/wordmark-white.png`,

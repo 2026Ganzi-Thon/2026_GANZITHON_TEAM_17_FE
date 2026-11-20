@@ -12,6 +12,6 @@ const built=spawnSync('npm',['run','build'],{cwd:root,stdio:'inherit',shell:proc
 if(built.status!==0)process.exit(built.status||1);
 const html=readFileSync(resolve(root,'dist/index.html'),'utf8');
 if(!html.includes('한 올 · 마음을 잇는 편지')||/미리봄|miribom/i.test(html))throw new Error('빌드 결과가 한 올이 아니므로 배포를 중단합니다.');
-for(const asset of ['oni.png','saebomi.png','logo-symbol.png','logo-wordmark.png'])if(!existsSync(resolve(root,'dist/brand',asset)))throw new Error(`한 올 이미지가 누락됐어요: ${asset}`);
+for(const asset of ['oni.png','saebomi.png','logo-symbol.png','logo-wordmark.png','Group 21.png','Group 29.png','Ellipse 32.png'])if(!existsSync(resolve(root,'dist/brand',asset)))throw new Error(`한 올 이미지가 누락됐어요: ${asset}`);
 for(const asset of ['NanumSquareRoundOTFB.otf','NanumSquareRoundOTFEB.otf','OFL-NanumSquareRound.txt'])if(!existsSync(resolve(root,'dist/fonts',asset)))throw new Error(`한 올 글꼴이 누락됐어요: ${asset}`);
 console.log('한 올 소스·빌드 결과·이미지·Hosting 대상 검증 완료');

@@ -1,6 +1,11 @@
-import {Home,MessageSquare,UserRound,ArrowLeft} from 'lucide-react';
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import {noticeDay,noticeTime} from './noticeDates';
+import BottomNavigation from '../../src/BottomNavigation';
+import SortDropdown from '../../src/SortDropdown';
+import {Home,MessageSquare,UserRound,ChevronLeft,Mail,Heart} from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import profileArt from './brand/saebomi.png';
+import profileSceneArt from './profile-art.png';
+import youthInfoArt from './youth-info-art.png';
 import oniArt from './brand/oni.png';
 import wordmarkArt from './brand/logo-wordmark.png';
 import brandArt from './brand/logo-symbol.png';
@@ -9,6 +14,7 @@ import helpedArt from './stamp-1.png';
 import cheeredArt from './stamp-2.png';
 import careerIcon from './topic-career.png';
 import mindIcon from './topic-mind.png';
+import {sortWorries,type WorrySort} from './worrySorting';
 import { demoCrisisDetected, demoNicknameBlocked, demoWorryWarning } from './demoFilter';
 import { api, ApiError, createWorry, demoAges, demoLetter, getDetail, sample, tags, type Draft, type FeedResponse, type MineResponse,
   type Notification, type Reply, type Worry } from './model';
@@ -73,13 +79,13 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
         return { ...item, replies: [...item.replies, { id: item.id * 10 + 2, author: '포근한 양', content: '', image: demoLetter }] };
       });
   });
-  const [read, setRead] = useState<number[]>(() => restore(key + '-read', []));
   const [page, setPage] = useState<Page>('home');
   const [from, setFrom] = useState<Page>('mine');
   const [selected, select] = useState<number>();
   const [replyId, selectReply] = useState<number>();
   const [filter, setFilter] = useState('');
-  const [oldestFirst, setOldestFirst] = useState(false);
+  const tagDrag = useRef({ active: false, moved: false, startX: 0, scrollLeft: 0 });
+  const [sortOrder, setSortOrder] = useState<WorrySort>('latest');
   const [draft, setDraft] = useState<Draft>(empty);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
@@ -124,6 +130,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
   const [isPublic, setPublic] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [serverAlerts, setServerAlerts] = useState<Notification[]>([]);
+  const [alertsLoading,setAlertsLoading]=useState(false);
   useEffect(() => {
     if (!userId) return;
     let current = true;
@@ -142,6 +149,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
   useEffect(() => {
     if (!userId || (page !== 'feed' && page !== 'alerts')) return;
     let current = true;
+    setAlertsLoading(page==='alerts');
     setLoadError('');
     const request = page === 'feed'
       ? api<FeedResponse>(userId, '/api/worries/public').then(({ items: rows }) => {
@@ -156,16 +164,15 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
         });
       })
       : api<{ items: Notification[] }>(userId, '/api/notifications').then(({ items: rows }) => {
-        if (current) setServerAlerts(rows);
+        if (current) setServerAlerts([...rows].sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt)));
       });
-    request.catch((failure: Error) => { if (current) setLoadError(failure.message); });
+    request.catch((failure: Error) => { if (current) setLoadError(failure.message); }).finally(()=>{if(current)setAlertsLoading(false)});
     return () => { current = false; };
   }, [page, userId]);
   const worry = items.find(item => item.id === selected);
   const authorAge = worry && (worry.authorAge || (!userId ? (worry.mine && age) || demoAges[worry.id] : undefined));
   const reply = worry?.replies.find(item => item.id === replyId);
   const myItems = items.filter(item => item.mine);
-  const notifications = myItems.filter(item => !item.hidden && item.replies.length);
   const titles: Record<Page, string> = {
     home: '한 올', mine: '한 올', received: '한 올', feed: '한 올', profile: '한 올',
     info: '프로필 수정', nickname: '프로필 수정', alerts: '알림', form: editing ? '고민 수정' : '고민 작성하기', detail: reply ? '답장' : '고민 읽기', done: '고민 전달 완료',
@@ -343,9 +350,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     }
   }
   function card(item: Worry, source: Page) {
-    const expanded = activeCard === item.id || (activeCard === undefined && source === 'feed' &&
-      items.filter(row => !row.mine && !row.hidden && (!filter || row.tag === filter))
-        .sort((a, b) => b.date.localeCompare(a.date))[0]?.id === item.id);
+    const expanded = activeCard === item.id;
     return <article className={`card story${expanded ? ' story-expanded' : ''}`} key={item.id}>
       <span className="story-meta"><Topic tag={item.tag} /><time>{item.date.slice(0, 10).replaceAll('-', '.')}</time></span>
       <button className="story-title" onClick={() => setActiveCard(expanded ? 0 : item.id)} aria-expanded={expanded}>
@@ -362,10 +367,40 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     const available = source === 'feed'
       ? items.filter(item => !item.mine && !item.hidden && item.visibility === 'PUBLIC')
       : source === 'received' ? myItems.filter(item => !item.hidden && (item.replyCount ?? item.replies.length)) : myItems;
-    const visible = available.filter(item => !filter || item.tag === filter).sort((a, b) =>
-      oldestFirst ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
+    const visible = sortWorries(available.filter(item => !filter || item.tag === filter), sortOrder, Object.keys(tags));
     return <>
-      <div className="tag-picker" role="group" aria-label="고민 주제">
+      <div className="tag-picker draggable-tags" role="group" aria-label="고민 주제"
+        onPointerDown={event => {
+          tagDrag.current.moved = false;
+          if (event.pointerType !== 'mouse' || event.button !== 0) return;
+          tagDrag.current = {
+            active: true, moved: false, startX: event.clientX, scrollLeft: event.currentTarget.scrollLeft,
+          };
+          (event.target as HTMLElement).setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={event => {
+          const drag = tagDrag.current;
+          if (!drag.active || event.pointerType !== 'mouse') return;
+          const distance = event.clientX - drag.startX;
+          if (Math.abs(distance) > 5) drag.moved = true;
+          if (drag.moved) {
+            event.currentTarget.scrollLeft = drag.scrollLeft - distance;
+            event.currentTarget.dataset.dragging = 'true';
+          }
+        }}
+        onPointerUp={event => {
+          tagDrag.current.active = false;
+          delete event.currentTarget.dataset.dragging;
+        }}
+        onPointerCancel={event => {
+          tagDrag.current.active = false;
+          delete event.currentTarget.dataset.dragging;
+        }}
+        onClickCapture={event => {
+          if (!tagDrag.current.moved || event.detail === 0) return;
+          event.preventDefault();
+          event.stopPropagation();
+        }}>
         {[['', '전체'], ...Object.entries(tags)].map(([value, label]) =>
           <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>
             {label}
@@ -373,10 +408,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
       </div>
       <div className="list-toolbar">
         <span className="pill">{source === 'received' || source === 'mine' && visible.every(item => (item.replyCount ?? item.replies.length) > 0) ? '답장을 받은 고민' : '답장을 기다리는 고민'}</span>
-        <select aria-label="정렬 순서" value={oldestFirst ? 'oldest' : 'latest'}
-          onChange={event => setOldestFirst(event.target.value === 'oldest')}>
-          <option value="latest">최신순</option><option value="oldest">오래된순</option>
-        </select>
+        <SortDropdown value={sortOrder} onChange={setSortOrder}/>
       </div>
       {visible.length ? visible.map(item => card(item, source)) : <div className="empty"><img className="empty-mascot" src={profileArt} alt="새봄이"/><p>아직 표시할 고민이 없어요.</p></div>}
     </>;
@@ -396,10 +428,11 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     <div className="page-intro"><h1>인생 선배께 받은 답장이에요.</h1><p>천천히 받은 답장을 살펴보세요.</p></div>
     {list('received')}
   </>;
-  if (page === 'profile') body = <section className="profile-links">
-    <img className="profile-art" src={profileArt} alt="편지를 전하는 청년 캐릭터 새봄이" />
+  if (page === 'profile') body = <section className="profile-links" aria-label="내 한 올">
+    <div className="profile-illustration" aria-hidden="true" />
     <button className="card story" onClick={() => { setNicknameDraft(nickname); go(userId ? 'nickname' : 'info'); }}>프로필 수정 <span className="chevron-circle" aria-hidden="true" /></button>
     <button className="card story" onClick={() => go('alerts')}>알림 <span className="chevron-circle" aria-hidden="true" /></button>
+    {onRestart && <button type="button" className="text-button restart-button" disabled={pending} onClick={onRestart}>처음부터 다시 시작</button>}
   </section>;
   if (page === 'info') body = <form className="stack youth-info" onSubmit={event => {
     event.preventDefault();
@@ -414,7 +447,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     localStorage.setItem(key + '-age', JSON.stringify(age));
     go('profile');
   }}>
-    <img className="profile-art" src={profileArt} alt="편지를 전하는 청년 캐릭터 새봄이" />
+    <div className="youth-info-illustration" aria-hidden="true" />
     <div className="info-intro"><h1>반가워요, <span>청년</span></h1><p>인생 선배께 전할 이름을 알려주세요</p></div>
     <label>닉네임 <input placeholder="예: 따뜻한마음" aria-invalid={Boolean(error && error.includes('닉네임'))}
       value={nicknameDraft} onChange={event => { setNicknameDraft(event.target.value); setError(''); }} /></label>
@@ -441,31 +474,21 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
     <button className="primary" disabled={pending}>저장하기</button>
   </form>{onRestart && <div className="restart-section"><button type="button" disabled={pending} onClick={onRestart}>처음부터 다시 시작</button><p>시연용 · 이 기기의 사용자 ID를 초기화하고 역할을 다시 선택해요.</p></div>}</>;
   const serverAlertCard = (item: Notification) =>
-    <button className="card story" key={item.notificationId} disabled={pending} onClick={() => {
+    <button className={`card story notice-card ${item.read?'is-read':'is-unread'}`} key={item.notificationId} disabled={pending} onClick={() => {
       void mutate('/api/notifications/' + item.notificationId + '/read', 'PATCH', () => {
         setServerAlerts(previous => previous.map(row => row.notificationId === item.notificationId ? { ...row, read: true } : row));
         go('received');
       });
-    }}><span className="alert-icon" aria-hidden="true">✉</span><span><strong>{item.title}</strong><small>{item.read ? '읽음' : '새 알림'}</small></span><time>{item.createdAt.slice(0, 10)}</time></button>;
-  const demoAlertCard = (item: Worry) =>
-    <button className="card story" key={item.id} onClick={() => {
-      const next = [...new Set([...read, item.id])];
-      setRead(next);
-      localStorage.setItem(key + '-read', JSON.stringify(next));
-      open(item, 'alerts');
-    }}><span className="alert-icon" aria-hidden="true">✉</span><span><strong>{read.includes(item.id) ? '답장이 왔어요' : '새 답장이 왔어요'}</strong><small>‘{item.title}’에 답장이 왔어요.</small></span></button>;
+    }}><span className="alert-icon" aria-hidden="true">{item.title.includes('좋아요')?<Heart size={18}/>:<Mail size={18}/>}</span><span className="alert-copy"><strong>{item.title}</strong><small>{item.content||'알림을 눌러 내용을 확인해 주세요.'}</small></span><time dateTime={item.createdAt}>{noticeTime(item.createdAt)}</time></button>;
   if (page === 'alerts') {
-    const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
-    const current = userId
-      ? serverAlerts.filter(item => item.createdAt.startsWith(today)).map(serverAlertCard)
-      : notifications.filter(item => !read.includes(item.id)).map(demoAlertCard);
-    const earlier = userId
-      ? serverAlerts.filter(item => !item.createdAt.startsWith(today)).map(serverAlertCard)
-      : notifications.filter(item => read.includes(item.id)).map(demoAlertCard);
-    body = <section className="alert-list">
+    const today = noticeDay(new Date());
+    const current = serverAlerts.filter(item => noticeDay(item.createdAt)===today).map(serverAlertCard);
+    const earlier = serverAlerts.filter(item => noticeDay(item.createdAt)!==today).map(serverAlertCard);
+    body = <section className="alert-list" aria-busy={alertsLoading}>
+      {alertsLoading&&<p role="status">알림을 불러오고 있어요…</p>}
       {current.length > 0 && <><h2>오늘</h2>{current}</>}
       {earlier.length > 0 && <><h2>이전 알림</h2>{earlier}</>}
-      {!current.length && !earlier.length && <div className="empty"><img className="empty-mascot" src={profileArt} alt="새봄이"/><p>지금은 알림이 없어요.</p></div>}
+      {!alertsLoading && !loadError && !current.length && !earlier.length && <div className="empty"><img className="empty-mascot" src={profileArt} alt="새봄이"/><p>지금은 알림이 없어요.</p></div>}
     </section>;
   }
   const titleMissing = checkedDraft && !draft.title.trim();
@@ -492,7 +515,7 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
   </form>;
   if (page === 'done' && !crisisNotice) body = <section className="completion"><span aria-hidden="true">✓</span><h1>고민을 올렸어요</h1>
     <p>인생 선배께 글이 전해졌어요.</p>
-    <div className="completion-buttons"><button className="primary full-width" onClick={() => go('mine')}>내 고민 보러가기</button>
+    <div className="completion-buttons"><button className="primary full-width" onClick={() => { selectReply(undefined); setFrom('mine'); go('detail'); }}>내 고민 보러가기</button>
       <button className="primary full-width home-button" onClick={() => go('home')}><i className="nav-glyph glyph-home" aria-hidden="true" />홈으로 돌아가기</button></div>
   </section>;
   if (page === 'detail' && worry) body = reply ? <>
@@ -599,14 +622,16 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
   const canGoBack = ['form', 'detail', 'done', 'alerts', 'nickname', 'info'].includes(page);
   const actionSheet = action === 'heart' || action === 'update';
   const activeTab = page === 'received' ? 'received' : page === 'profile' || page === 'alerts' ? 'profile' : 'home';
-  return <div className={`youth-app screen-${crisisNotice ? 'form' : page}${replyList && !reply ? ' screen-reply-list' : ''}${reply ? ' screen-reply' : ''}${actionSheet ? ' feedback-screen feedback-' + action : ''}${completed && completed !== 'report' ? ' result-screen' : ''}`}>
+  return <div style={page === 'info' ? { backgroundImage: `url("${youthInfoArt}"), linear-gradient(#fff1e9, #fff)` }
+    : page === 'profile' ? { backgroundImage: `url("${profileSceneArt}"), linear-gradient(145deg, #fff5ee, #fff)` } : undefined}
+    className={`youth-app screen-${crisisNotice ? 'form' : page}${replyList && !reply ? ' screen-reply-list' : ''}${reply ? ' screen-reply' : ''}${actionSheet ? ' feedback-screen feedback-' + action : ''}${completed && completed !== 'report' ? ' result-screen' : ''}`}>
     <header>
       {canGoBack && <button aria-label="뒤로" disabled={pending || crisisNotice || Boolean(draftWarning)} onClick={() => {
         if (completed || action) { setCompleted(undefined); setAction(undefined); setError(''); }
         else if (page === 'alerts' || page === 'nickname' || page === 'info') go('profile');
         else if (page === 'detail' && (reply || replyList)) { selectReply(undefined); go(from); }
         else go(page === 'detail' ? from : editing && page === 'form' ? 'detail' : 'home');
-      }}><ArrowLeft/></button>}
+      }}><ChevronLeft/></button>}
       <strong>{titles[page] === '한 올' && <span className="youth-brand" role="img" aria-label="한 올"><img className="brand-art" src={brandArt} alt="" /><img className="wordmark-art" src={wordmarkArt} alt="" /></span>}
         {crisisNotice ? titles.form : completed && completed !== 'report' ? completed === 'heart' ? '고마움 전달 완료' : '후일담 전달 완료' : actionSheet ? actionTitle : replyList ? '답장' : titles[page] === '한 올' ? null : titles[page]}</strong>
     </header>
@@ -679,12 +704,6 @@ export function YouthApp({ userId, initialNickname, initialAge, onRestart }: { o
         </section>
       </div>}
     </main>
-    {(!canGoBack || page === 'alerts') && <nav aria-label="청년 메뉴">
-      {(['home', 'received', 'profile'] as const).map(tab => <button key={tab}
-        aria-current={activeTab === tab ? 'page' : undefined} onClick={() => go(tab)}>
-        <span aria-hidden="true">{tab==='home'?<Home/>:tab==='received'?<MessageSquare/>:<UserRound/>}</span>
-        {{ home: '홈', received: '답장', profile: '내 한 올' }[tab]}
-      </button>)}
-    </nav>}
+    {(!canGoBack || page === 'alerts') && <BottomNavigation youth active={activeTab==='received'?'replies':activeTab} onSelect={tab=>go(tab==='replies'?'received':tab)}/>}
   </div>;
 }
