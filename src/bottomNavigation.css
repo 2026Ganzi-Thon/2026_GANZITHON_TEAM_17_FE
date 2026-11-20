@@ -8,6 +8,6 @@
 .bottom-navigation.bottom-navigation .nav-icon>.nav-home{fill:currentColor}
 .bottom-navigation.bottom-navigation button>.nav-label{display:block;width:auto;height:auto;max-width:none;margin:0;border-radius:0;background:none;color:inherit;line-height:1.4;font:inherit}
 .bottom-navigation.bottom-navigation button:focus-visible{outline:2px solid var(--nav-active);outline-offset:2px;border-radius:12px}
-.bottom-navigation.bottom-navigation.youth-navigation{--nav-color:#f48b65;--nav-active:#f66d3e;--nav-pill:#fff0e9;width:min(100%,440px)}
-.youth-app:has(>.bottom-navigation){padding-bottom:88px}
+.bottom-navigation.bottom-navigation.youth-navigation{--nav-color:#f48b65;--nav-active:#f66d3e;--nav-pill:#fff0e9;z-index:2;position:relative;left:auto;bottom:auto;transform:none;width:100%;max-width:100%;flex:0 0 auto}
+.youth-app:has(>.bottom-navigation){padding-bottom:0}
 @media print{.bottom-navigation.bottom-navigation{display:none}}

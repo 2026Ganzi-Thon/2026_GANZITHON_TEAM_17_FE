@@ -437,6 +437,102 @@
 }
 .youth-app .draggable-tags, .youth-app .draggable-tags button { cursor: grab; user-select: none; }
 .youth-app .draggable-tags[data-dragging], .youth-app .draggable-tags[data-dragging] button { cursor: grabbing; }
+.youth-host {
+  width: 100%;
+  max-width: 440px;
+  margin-inline: auto;
+  background: transparent;
+  container-type: inline-size;
+}
+.youth-app {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.youth-app > header { flex-shrink: 0; }
+.youth-app > main {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.youth-app > nav {
+  position: relative;
+  bottom: auto;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+.youth-app:is(.screen-home, .screen-mine, .screen-feed, .screen-received, .screen-alerts) {
+  background: radial-gradient(ellipse at 100% 0, #eaddff, transparent 64%),
+    linear-gradient(155deg, #f5edff 0%, #fdf0e7 58%, #fff8f4 100%);
+}
+.youth-host:has(> .youth-app:is(.screen-home, .screen-mine, .screen-feed, .screen-received, .screen-alerts)) {
+  background: radial-gradient(ellipse at 100% 0, #eaddff, transparent 64%), #fdf0e7;
+}
+.youth-app .tag-picker button[aria-pressed=true] { background: #ee6133; }
+.youth-app .switcher button[aria-pressed=true], .youth-app .write-button {
+  background: linear-gradient(180deg, #f87e4a, #e54921);
+}
+.youth-app :is(.worry-list, .worry-list > *, .worry-card, .story, .story-title, .story-title strong) {
+  min-width: 0;
+  max-width: 100%;
+}
+.youth-app :is(.worry-list, .story) { grid-template-columns: minmax(0, 1fr); }
+.youth-app:is(.screen-home, .screen-mine) .write-button { bottom: 0; flex-shrink: 0; }
+.youth-app:is(.screen-home, .screen-mine) > main > :is(.page-intro, .switcher, .tag-picker, .list-toolbar, .story, .empty) {
+  flex-shrink: 0;
+}
+.youth-app .draggable-tags { min-height: 31px; flex-shrink: 0; }
+.youth-app .comment-dock { width: min(calc(100% - 32px), 408px); }
+@supports (height: 1cqw) {
+  .youth-app .profile-illustration { height: max(0px, calc(103.05cqw - 82px)); }
+  .youth-app .youth-info-illustration { height: max(0px, calc(89.06cqw - 90px)); }
+}
+.youth-app .dialog-backdrop > .writing-dialog { padding: 24px 20px; border-radius: 32px; min-height: 0; gap: 12px; }
+.youth-app .writing-dialog > span { width: 66px; height: 66px; margin-bottom: 4px; font-family: Arial, sans-serif; font-size: 29px; }
+.youth-app .writing-dialog h2 { font-size: 17px; line-height: 1.45; margin-bottom: 0; }
+.youth-app .writing-dialog > p { font-size: 14px; line-height: 1.55; margin-bottom: 3px; color: #918b88; }
+.youth-app .writing-reason { padding: 8px 14px; margin-bottom: 0; }
+.youth-app .writing-reason strong { font-size: 12px; }
+.youth-app .writing-reason p { font-size: 12px; color: #918b88; }
+.youth-app .writing-dialog .primary { margin-top: 0; min-height: 43px; border-radius: 14px; }
+.youth-app .dialog-backdrop > .crisis-dialog { min-height: 345px; padding-top: 26px; }
+.youth-app .crisis-dialog .primary { margin-top: auto; }
+.youth-app .report-backdrop > section { border-radius: 30px; }
+.youth-app .report-backdrop .action { padding: 22px 20px; }
+.youth-app .report-reasons label { min-height: 36px; padding: 5px 8px; background: #f1f1f0; border: 1px solid #d9d9d6; border-radius: 12px; font-size: 12px; font-weight: 400; }
+.youth-app .report-reasons label:has(input:checked) { outline: none; border-color: #ff9b78; background: #fff0e9; }
+.youth-app .report-reasons input { accent-color: #fa7449; }
+.youth-app .report-backdrop .dialog-buttons button { min-height: 43px; border-radius: 13px; }
+.youth-app .report-backdrop .dialog-buttons button:not(.primary) { background: #dededc; border: 0; color: #706a66; }
+.youth-app .report-backdrop form:has(.report-symbol) { padding-top: 4px; gap: 15px; }
+.youth-app .report-choice { min-width: 145px; font-size: 12px; }
+.youth-app .report-receipt { min-height: 275px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.youth-app .report-receipt h2 { margin: 3px 0 0; }
+.youth-app .report-receipt > p { margin: 0 0 10px; }
+.youth-app .report-receipt > .primary { min-height: 43px; }
+.youth-app .hide-offer { border-top: 1px solid #eee9e5; padding-top: 12px; display: grid; gap: 6px; text-align: left; }
+.youth-app .hide-offer strong { font-size: 13px; }
+.youth-app .hide-offer small, .youth-app .hide-dialog > small { font-size: 11px; color: #918b88; }
+.youth-app .hide-offer .text-button { min-height: 26px; padding-block: 0; font-size: 11px; color: #918b88; }
+.youth-app .report-symbol { font-family: Arial, sans-serif; width: 64px; height: 64px; }
+.youth-app.screen-form .writing-guide { border-top: 14px solid #f0eeed; padding-top: 16px; margin-top: 8px; }
+.youth-app.screen-form .choices input[type=radio] { appearance: none; width: 15px; height: 15px; border: 1px solid #fa8259; border-radius: 3px; padding: 0; background: #fff; }
+.youth-app.screen-form .choices input:checked { background: #f87e4a; box-shadow: inset 0 0 0 3px #fff; }
+.youth-app .status-check { width: 37px; height: 37px; color: #ff8053; }
+.youth-app .report-symbol .status-check { width: 32px; height: 32px; }
+.youth-app nav button > span { height: 40px; width: min(100%, 82px); margin-inline: auto; border-radius: 999px; }
+.youth-app nav button[aria-current=page] > span { width: min(100%, 82px); }
+.youth-app nav button { display: grid; justify-items: stretch; align-content: start; gap: 6px; padding: 4px 3px 8px; }
 .youth-app.screen-profile { background-color: #fff; background-repeat: no-repeat; background-position: center top; background-size: 100% auto, 100% 100%; }
 .youth-app.screen-profile header { visibility: hidden; }
 .youth-app .profile-illustration { height: 323px; }
@@ -506,3 +602,11 @@
 .youth-app .story,.youth-app .story>*{min-width:0;max-width:100%}
 .youth-app .story-title>strong{min-width:0}
 .youth-app .tag-picker button[aria-pressed=true]{background:#ee6133;border-color:#ee6133}
+
+/* Keep the teammate responsive artwork sizing after the base illustration rules. */
+@supports(height:1cqw){
+ .youth-app .profile-illustration{height:max(0px,calc(103.05cqw - 82px))}
+ .youth-app .youth-info-illustration{height:max(0px,calc(89.06cqw - 90px))}
+}
+.youth-app.screen-form header button[aria-label="닫기"]{display:inline-flex;align-items:center;justify-content:center;width:40px;min-height:40px;padding:8px;color:#99948f}
+.youth-app.screen-form header button[aria-label="닫기"]>svg{width:24px;height:24px;stroke-width:1.8}
