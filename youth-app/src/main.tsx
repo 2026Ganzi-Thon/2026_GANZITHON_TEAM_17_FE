@@ -47,4 +47,4 @@ function DemoEntry() {
   </div>;
 }
 
-createRoot(document.getElementById('root')!).render(<DemoEntry />);
+createRoot(document.getElementById('root')!).render(<div className="youth-host"><DemoEntry /></div>);

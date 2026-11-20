@@ -31,6 +31,11 @@ function HeartIcon({ filled = false }: { filled?: boolean }) {
     <path d="M10 16.5 3.7 10.2a4 4 0 0 1 5.7-5.6l.6.6.6-.6a4 4 0 0 1 5.7 5.6Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
   </svg>;
 }
+function CheckMark() {
+  return <svg className="status-check" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+    <path d="m6 16 7 7L27 8" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>;
+}
 
 function CommentCount({ count }: { count: number }) {
   return <small className="comment-count" aria-label={`댓글 및 답장 ${count}개`}>
@@ -87,12 +92,15 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
   const [action, setAction] = useState<Action>();
   const [completed, setCompleted] = useState<Action>();
   const [confirmReport, setConfirmReport] = useState(false);
+  const [hideStep, setHideStep] = useState<'confirm' | 'done'>();
+  const [privacyNotice, setPrivacyNotice] = useState(false);
   const [nickname, setNickname] = useState(() => restore(key + '-nickname', '포근한 양 312'));
   const [nicknameDraft, setNicknameDraft] = useState('');
   const [age, setAge] = useState(() => restore(key + '-age', ''));
   const [showMenu, setShowMenu] = useState(false);
   const [letterZoom, setLetterZoom] = useState(false);
   const [draftWarning, setDraftWarning] = useState('');
+  const [draftWarningItem, setDraftWarningItem] = useState('');
   const [checkedDraft, setCheckedDraft] = useState(false);
   const [activeCard, setActiveCard] = useState<number>();
   const [replyList, setReplyList] = useState(false);
@@ -180,6 +188,8 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
     setError('');
     setAction(undefined);
     setCompleted(undefined);
+    setHideStep(undefined);
+    setPrivacyNotice(false);
     setFilter('');
     setLoadError('');
     setShowMenu(false);
@@ -252,8 +262,13 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
   }
   function showWritingError(failure: unknown) {
     const message = failure instanceof Error ? failure.message : '다시 시도해 주세요.';
-    if (failure instanceof ApiError && /^FILTER_422_00[123]$/.test(failure.code ?? '')) setDraftWarning(message);
-    else setError(message);
+    if (failure instanceof ApiError && /^FILTER_422_00[123]$/.test(failure.code ?? '')) {
+      const fields: Record<string, string> = {
+        FILTER_422_001: '금지 표현', FILTER_422_002: '전화번호', FILTER_422_003: 'SNS ID · 링크',
+      };
+      setDraftWarningItem(fields[failure.code!]);
+      setDraftWarning(message);
+    } else setError(message);
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -264,7 +279,11 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
     setDraftWarning('');
     if (!userId) {
       const warning = demoWorryWarning(draft.title, draft.content);
-      if (warning) { setDraftWarning(warning); return; }
+      if (warning) {
+        setDraftWarningItem(warning.includes('전화번호') ? '전화번호' : warning.includes('링크') ? 'SNS ID · 링크' : '금지 표현');
+        setDraftWarning(warning);
+        return;
+      }
     }
     if (editing) {
       if (!worry || worry.hidden || (worry.replyCount ?? worry.replies.length)) return;
@@ -361,7 +380,8 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
     const available = source === 'feed'
       ? items.filter(item => !item.mine && !item.hidden && item.visibility === 'PUBLIC')
       : source === 'received' ? myItems.filter(item => !item.hidden && (item.replyCount ?? item.replies.length)) : myItems;
-    const visible = available.filter(item => !filter || item.tag === filter).sort((a, b) =>
+    const hiddenIds = new Set(restore<number[]>(key + '-hidden', []));
+    const visible = available.filter(item => !hiddenIds.has(item.id) && (!filter || item.tag === filter)).sort((a, b) =>
       oldestFirst ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
     return <>
       <div className="tag-picker draggable-tags" role="group" aria-label="고민 주제"
@@ -527,7 +547,7 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
     </div>
     <button className="primary full-width" disabled={pending}>{pending ? '보내는 중…' : editing ? '수정 완료' : '작성 완료'}</button>
   </form>;
-  if (page === 'done' && !crisisNotice) body = <section className="completion"><span aria-hidden="true">✓</span><h1>고민을 올렸어요</h1>
+  if (page === 'done' && !crisisNotice) body = <section className="completion"><span aria-hidden="true"><CheckMark /></span><h1>고민을 올렸어요</h1>
     <p>인생 선배께 글이 전해졌어요.</p>
     <div className="completion-buttons"><button className="primary full-width" onClick={() => {
       selectReply(undefined);
@@ -590,6 +610,8 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
         void mutate('/api/worries/' + worry.id + '/visibility', 'PATCH', () => {
           changeWorry({ visibility: 'SENIORS_ONLY', replies: worry.replies.map(item =>
             item.update ? { ...item, update: { ...item.update, public: false } } : item) });
+          setShowMenu(false);
+          setPrivacyNotice(true);
         }, { visibility: 'SENIORS_ONLY' });
       }}>공개 범위 변경</button>}
       <button className="menu-delete" onClick={() => {
@@ -636,7 +658,7 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
   </>;
 
   const actionTitle = action === 'heart' ? '고마움 전하기' : action === 'update' ? '후일담 전하기' : '신고하기';
-  const reasons = reply ? ['욕설 및 비방', '성희롱', '광고·홍보', '관련 없는 내용', '기타'] : ['광고·홍보', '욕설', '기타'];
+  const reasons = reply ? ['욕설 및 비방', '성희롱', '광고·홍보', '관련 없는 내용', '기타'] : ['광고·홍보', '욕설 및 비방', '기타'];
   const canGoBack = ['form', 'detail', 'done', 'alerts', 'nickname', 'info'].includes(page);
   const actionSheet = action === 'heart' || action === 'update';
   const activeTab = page === 'received' ? 'received' : page === 'profile' || page === 'alerts' ? 'profile' : 'home';
@@ -659,8 +681,8 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
       </div>}
       {draftWarning && <div className="dialog-backdrop"><section className="writing-dialog" role="alertdialog" aria-modal="true" aria-labelledby="writing-warning">
         <span aria-hidden="true">!</span><h2 id="writing-warning">내용을 한 번 더 확인해 주세요</h2>
-        <p>외부 연락처나 부적절한 표현이 포함되어 있어요. 내용을 수정해 주세요.</p>
-        <div className="writing-reason"><strong>확인 항목</strong><p>{draftWarning}</p></div>
+        <p>외부 연락처나 부적절한 표현이 포함되어 있어 답장을 보낼 수 없어요.</p>
+        <div className="writing-reason"><strong>확인 항목</strong><p>{draftWarningItem || '전화번호 · SNS ID · 금지 표현'}</p></div>
         <button className="primary full-width" autoFocus onClick={() => setDraftWarning('')}>다음</button>
       </section></div>}
       {crisisNotice && <div className="dialog-backdrop"><section className="writing-dialog crisis-dialog" role="alertdialog" aria-modal="true" aria-labelledby="crisis-notice">
@@ -700,22 +722,49 @@ export function YouthApp({ userId, onRestart }: { userId?: string; onRestart?: (
         <div className="row dialog-buttons">{action === 'report' && confirmReport && <button type="button" disabled={pending}
           onClick={() => { setAction(undefined); setError(''); }}>취소</button>}
           <button className="primary" disabled={pending || (action === 'update' ? !note.trim() : !choice)}>
-            {action === 'report' && !confirmReport ? '다음' : actionTitle}</button></div>
+            {action === 'report' ? '다음' : actionTitle}</button></div>
         {action === 'report' && !confirmReport && <button className="text-button report-cancel" type="button"
           onClick={() => { setAction(undefined); setError(''); }}>취소</button>}
       </form></section></div>}
       {completed === 'report' && <div className="dialog-backdrop report-backdrop">
         <section className="report-receipt" role="dialog" aria-modal="true" aria-labelledby="report-receipt-title">
-          <span className="report-symbol" aria-hidden="true">✓</span>
+          <span className="report-symbol" aria-hidden="true"><CheckMark /></span>
           <h2 id="report-receipt-title">신고가 접수됐어요</h2>
-          <p>{worry?.mine ? '신고한 답장이 숨겨졌어요.' : '신고한 고민이 숨겨졌어요.'}</p>
-          <button className="primary full-width" autoFocus onClick={() => worry?.mine ? setCompleted(undefined) : go('feed')}>
-            {worry?.mine ? '닫기' : '고민 목록으로'}
-          </button>
+          <p>확인 후 필요한 조치를 진행할게요.</p>
+          {!worry?.mine && <div className="hide-offer"><strong>이 고민을 숨길까요?</strong><small>숨기면 내 화면에서 이 글이 보이지 않아요.</small>
+            <button className="primary full-width" onClick={() => { setCompleted(undefined); setHideStep('confirm'); }}>고민 숨기기</button>
+            <button className="text-button" onClick={() => go('feed')}>나중에</button>
+          </div>}
+          {worry?.mine && <button className="primary full-width" autoFocus onClick={() => setCompleted(undefined)}>닫기</button>}
+        </section>
+      </div>}
+      {hideStep && <div className="dialog-backdrop report-backdrop">
+        <section className="report-receipt hide-dialog" role="dialog" aria-modal="true" aria-labelledby="hide-title">
+          <span className="report-symbol" aria-hidden="true">{hideStep === 'confirm' ? '!' : <CheckMark />}</span>
+          <h2 id="hide-title">{hideStep === 'confirm' ? '이 고민을 숨길까요?' : '고민을 숨겼어요'}</h2>
+          <p>{hideStep === 'confirm' ? '내 고민 목록에서 이 글이 보이지 않게 됩니다.' : '이 글은 내 고민 목록에 표시되지 않습니다.'}</p>
+          {hideStep === 'confirm' ? <><div className="row dialog-buttons">
+            <button onClick={() => { setHideStep(undefined); setCompleted('report'); }}>취소</button>
+            <button className="primary" onClick={() => {
+              if (worry) {
+                const hiddenIds = restore<number[]>(key + '-hidden', []);
+                localStorage.setItem(key + '-hidden', JSON.stringify([...new Set([...hiddenIds, worry.id])]));
+              }
+              setHideStep('done');
+            }}>숨기기</button>
+          </div><small>신고와 숨김은 각각 선택할 수 있어요.</small></>
+            : <button className="primary full-width" onClick={() => go('feed')}>고민 목록으로</button>}
+        </section>
+      </div>}
+      {privacyNotice && <div className="dialog-backdrop report-backdrop">
+        <section className="report-receipt" role="dialog" aria-modal="true" aria-label="비공개 전환 완료">
+          <span className="report-symbol" aria-hidden="true">!</span><h2>인생 선배와 나만 볼 수 있어요</h2>
+          <p>다른 청년들에겐 보이지 않아요.</p>
+          <button className="primary full-width" onClick={() => go('mine')}>고민 목록으로</button>
         </section>
       </div>}
       {completed && completed !== 'report' && <div className="feedback-result">
-        <section className="completion" role="status"><span aria-hidden="true">✓</span>
+        <section className="completion" role="status"><span aria-hidden="true"><CheckMark /></span>
           <h1>{completed === 'heart' ? '고마움을 전달했어요' : '후일담을 전달했어요'}</h1>
           <p>인생 선배께 마음이 전해졌어요.</p>
           <button className="primary full-width home-button" onClick={() => go('home')}><i className="nav-glyph glyph-home" aria-hidden="true" />홈으로 돌아가기</button>
