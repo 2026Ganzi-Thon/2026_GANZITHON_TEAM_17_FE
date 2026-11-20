@@ -1,9 +1,14 @@
-# 털 한 올 — Frontend
+# 한 올 · 청년–어르신 조언 플랫폼
 
-청년과 인생 선배가 마음을 나누는 서비스의 공통 가입 및 어르신 화면입니다.
-React 19 · TypeScript · Vite.
+공식 저장소: https://github.com/2026Ganzi-Thon/2026_GANZITHON_TEAM_17_FE
+
+배포 서비스: https://hanol-ganzi-team17.web.app
+
+React 19, TypeScript, Vite 6 기반 모바일 웹입니다. 공통 역할 선택·가입과 어르신 화면, 청년 화면을 통합합니다. 청년 화면은 스타일 충돌을 피하도록 Shadow DOM에서 실행하며 서버 사용자 ID를 공유합니다.
 
 ## 실행
+
+Node.js 22를 기준으로 합니다.
 
 ```sh
 npm ci
@@ -11,73 +16,39 @@ cp .env.example .env.local
 npm run dev
 ```
 
-터미널에 표시되는 로컬 주소를 엽니다. API 주소는 `.env.local`의 `VITE_API_BASE_URL`로 관리합니다. 가입하면 실제 서버 사용자가 생성되며, 사용자 ID는 현재 브라우저에 보관됩니다.
-
-## 확인
+`VITE_API_BASE_URL`은 배포된 API 서버 주소입니다. `.env.local` 등 실제 환경 설정과 인증 파일은 커밋하지 않습니다.
 
 ```sh
 npm test
 npm run build
 ```
 
-## 구현 범위
+청년 단독 시연은 `youth-app` 폴더에서 `npm ci` 및 `npm run dev`로 실행합니다. 상위 폴더의 공통 환경변수를 읽습니다.
 
-- 역할 선택, 닉네임 추천·가입·수정, 나이대 설정, 재접속 사용자 조회
-- 어르신 고민 목록·상세, 글 답장 등록, 손편지 원본 업로드·등록
-- 브라우저 음성 인식, 제재 안내 및 중복 전송 방지
-- 내 털 기록, 감사장 목록·상세 및 PNG/PDF 저장
-- 홈 요약, 받은 마음(고마움·후일담), 서버 내 답장 목록·반응 표시
-- 조건에 따른 답장 수정·삭제, 고민 신고 및 숨김
-- 알림 목록·읽음 처리와 대상 화면 이동
-- 프로필 전용 닉네임 수정 화면
-- 보라·피치 그라디언트 모바일 UI (캐릭터·로고는 임시 SVG)
+## 구성
 
-## 미완료 및 연동 대기
+- `src/`: 공통 가입·어르신 화면, 청년 호스트, 공통 메뉴·정렬·이미지 경로 처리
+- `youth-app/src/`: 청년 홈·고민·답장·프로필·알림
+- `public/`: 제공받은 원본 이미지, 파비콘, 글꼴과 라이선스
+- `tests/`: API 계약과 주요 데이터·이미지·메뉴 위치 회귀 테스트
+- `docs/design-feedback-status.md`: 피드백 반영 범위와 검증 한계
 
-다른 기기에서 보낸 답장의 본문 조회 API가 없어 해당 본문의 읽기·수정은 제한됩니다. 현재 기기에 본문이 있고 고마움·후일담을 받지 않은 글·음성 답장은 수정할 수 있으며, 서버가 최종 권한을 판단합니다.
+가입 후 기기에 저장된 UUID를 `X-User-Id`로 전달합니다. 초기화 버튼은 활성 ID를 지우고 역할 선택으로 돌아가며 서버 기록은 삭제하지 않습니다. 실제 알림이 없으면 빈 목록을 표시합니다.
 
-서버 STT는 미제공이므로 브라우저 음성 인식을 사용합니다. HTTPS 또는 localhost와 마이크 권한이 필요합니다. 청년 화면은 팀원 구현과 연결이 필요합니다. 캐릭터(양 온이·새 새봄이)와 털 단계 이미지는 임시 코드 그림이며 최종 디자인 검수가 남아 있습니다.
+## 배포
 
-감사장은 동일한 Canvas 그림을 화면·PNG·PDF에 사용하며 직접 다운로드합니다. 테스트 17개, TypeScript/Vite 빌드, PDF strict 파싱·페이지 렌더링을 확인했습니다. 실제 서버 통신·모바일 마이크/카메라·다운로드 검증은 미완료입니다. 운영 서버에 쓰기 테스트는 수행하지 않았습니다.
+Firebase Hosting 설정은 `firebase.json`, 대상 프로젝트는 `.firebaserc`에 있습니다. 인증된 환경에서 실행합니다.
 
-텍스트 크기 설정, 읽어주기, 손편지 OCR은 현재 범위에서 제외합니다.
+```sh
+npx firebase-tools deploy --only hosting --project hanol-ganzi-team17
+```
 
-## 파일 구조
+배포 전에 소스·빌드·필수 이미지를 검사합니다. Firebase 인증 정보는 저장소에 넣지 않습니다.
 
-- `src/main.tsx`: 가입, 홈, 목록, 프로필
-- `src/SeniorFlow.tsx`: 상세·답장 작성
-- `src/api.ts`: API 요청·사용자 헤더·오류 처리
-- `src/WoolRecord.tsx`, `src/Certificates.tsx`: 털 기록·감사장
-- `src/SentReplies.tsx`, `src/replyReceipts.ts`: 서버 답장 목록·수정·삭제 및 기기 본문 보관
-- `src/Notifications.tsx`, `src/ReceivedHearts.tsx`: 알림·받은 마음
-- `src/CertificateArt.tsx`, `src/certificateExport.ts`: 공통 감사장 그림·파일 저장
-- `tests/`: API·정책·전송 기록·PDF·음성 처리 테스트
+GitHub Pages는 `main`에 푸시하면 기존 Actions로 빌드·배포합니다. 로컬 확인은 `npm run build -- --mode github-pages`로 가능합니다.
 
-## GitHub Pages 배포
+## 검증 범위
 
-`main`에 푸시하면 GitHub Actions가 테스트·빌드 후 Pages에 자동 배포합니다.
-배포 주소: https://2026Ganzi-Thon.github.io/2026_GANZITHON_TEAM_17_FE/
+단위 테스트와 통합·청년 단독 빌드를 확인했습니다. 실제 휴대폰의 카메라·마이크, 손편지 전송 및 전체 화면의 시각 비교는 추가 확인이 필요합니다. 세부 내용은 피드백 문서에 기록합니다.
 
-Pages 빌드는 `npm run build -- --mode github-pages`를 사용하며 저장소 하위 경로를 적용합니다.
-백엔드 주소는 워크플로의 공개 환경변수로 지정합니다. 로컬 개발과 기본 빌드는 `/` 경로를 유지합니다.
-
-## Firebase 및 원본 캐릭터
-
-공개 주소: https://hanol-ganzi-team17.web.app
-`firebase.json`과 `.firebaserc`는 Firebase Hosting 배포 설정입니다. `npm run build` 후 `npx firebase-tools deploy --only hosting`으로 배포합니다.
-
-온이·새봄이는 제공받은 원본 투명 PNG를 `public/brand/`에서 사용합니다. 역할 선택·가입·프로필·빈 목록에 공통 Mascot 컴포넌트를 적용합니다. 파비콘은 로고 시안을 참고한 SVG입니다.
-
-전체 캐릭터·로고 사용부를 공통 `brand.ts`, `Logo`, `Mascot`으로 통일했습니다. 시작 화면 중복 글자를 제거하고 답장 완료·시연 빈 목록에도 원본을 적용했습니다. 감사장 화면과 PNG/PDF는 원본 심볼과 워드마크 로딩이 끝난 뒤 동일하게 그립니다. 이미지 로딩 재시도와 Pages 하위 경로를 포함한 테스트 19개가 통과했습니다. 털실·목도리·스웨터는 단계 표시용 그림이며 원본 캐릭터와 별개입니다.
-
-## 전달받은 청년 코드
-
-정정된 `2026_GANZITHON_TEAM_17_FE-seung-eon.zip`의 `youth-app/`을 별도 실행 프로젝트로 추가했습니다. `npm --prefix youth-app ci` 후 `npm --prefix youth-app run dev`로 실행합니다. 헤더·프로필·정보 입력·빈 상태의 캐릭터와 로고를 원본으로 교체했습니다. 공통·어르신 앱과 실행 경로를 합치는 변경은 포함하지 않습니다.
-
-## 청년 통합 진입
-
-공통 가입 이후 청년 역할은 `YouthHost`에서 청년 앱으로, 어르신은 기존 어르신 화면으로 진입합니다. 재접속에도 저장된 UUID를 전달하며 인증 ID 없는 청년 시연 화면으로 자동 진입하지 않습니다. 청년 앱 CSS는 Shadow DOM으로 분리하여 기존 어르신 스타일과 충돌하지 않게 했습니다. 두 프로젝트를 함께 빌드할 때 React를 중복 포함하지 않도록 Vite dedupe를 적용했습니다. 청년 단독 프로젝트도 계속 실행할 수 있습니다. 테스트 21개 및 통합·독립 빌드 통과. 운영 데이터 쓰기와 실제 브라우저 전체 흐름 검증은 수행하지 않았습니다.
-
-## 한 올 Hosting 배포 대상 확인
-
-Firebase Hosting 사이트를 `hanol-ganzi-team17`로 명시했습니다. 배포 전 소스 프로젝트 이름·사이트 ID·HTML 제목을 확인하고 새로 빌드한 뒤 한 올 이미지 자산을 검사합니다. 잘못된 앱 코드나 이전 빌드가 이 설정으로 배포되는 것을 막습니다. HTML에는 재검증 캐시 정책을 적용합니다. 다른 프로젝트에서도 이 Firebase 사이트를 배포 대상으로 사용하면 덮어쓸 수 있으므로 별도 프로젝트는 별도 사이트 ID를 사용해야 합니다.
+어르신 원본 답장 재조회에 필요한 서버 변경과 적용 방법은 [백엔드 적용 안내](docs/backend/senior-reply-detail.md)를 확인하세요.
